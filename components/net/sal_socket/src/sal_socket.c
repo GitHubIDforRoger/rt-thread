@@ -131,7 +131,7 @@ static void check_netdev_internet_up_work(struct rt_work *work, void *work_data)
 {
 #define SAL_INTERNET_VERSION   0x00
 #define SAL_INTERNET_BUFF_LEN  12
-#define SAL_INTERNET_TIMEOUT   (2 * RT_TICK_PER_SECOND)
+#define SAL_INTERNET_TIMEOUT   (2)
 
 #define SAL_INTERNET_HOST      "link.rt-thread.org"
 #define SAL_INTERNET_PORT      8101
@@ -371,7 +371,7 @@ int sal_netdev_cleanup(struct netdev *netdev)
         sal_unlock();
         if (find_dev)
         {
-            rt_thread_mdelay(rt_tick_from_millisecond(100));
+            rt_thread_mdelay(100);
         }
     }
     while (find_dev);
@@ -701,8 +701,6 @@ int sal_shutdown(int socket, int how)
         error = -1;
     }
 
-    /* delete socket */
-    socket_delete(socket);
 
     return error;
 }
