@@ -745,6 +745,7 @@ HAL_StatusTypeDef HAL_RCC_OscConfig(RCC_OscInitTypeDef  *RCC_OscInitStruct)
             return HAL_TIMEOUT;
           }
         }
+        *((unsigned int*)0x40021054) |= (0x30);
       }
       else
       {
@@ -781,6 +782,7 @@ HAL_StatusTypeDef HAL_RCC_OscConfig(RCC_OscInitTypeDef  *RCC_OscInitStruct)
           return HAL_ERROR;
         }
       }
+      *((unsigned int*)0x40021054) &= ~(0x30);
     }
   }
 
