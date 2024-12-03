@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -14,7 +14,11 @@
 #if defined BSP_USING_SDIO_SDCARD || defined BSP_USING_SPI_SDCARD
 #include <dfs_elm.h>
 #include <dfs_fs.h>
-#include <dfs_posix.h>
+#include <dfs_file.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
 #include "drv_gpio.h"
 
 #define DBG_TAG "app.card"
@@ -62,11 +66,11 @@ INIT_APP_EXPORT(stm32_sdcard_mount);
 
 #ifdef BSP_USING_SPI_SDCARD
 #include "drv_spi.h"
-#include "spi_msd.h"
+#include "dev_spi_msd.h"
 static int rt_hw_spi2_tfcard(void)
 {
     __HAL_RCC_GPIOC_CLK_ENABLE();
-    rt_hw_spi_device_attach("spi2", "spi20", GPIOD, GPIO_PIN_2);
+    rt_hw_spi_device_attach("spi2", "spi20", GET_PIN(D, 2));
     return msd_init("sd0", "spi20");
 }
 INIT_DEVICE_EXPORT(rt_hw_spi2_tfcard);

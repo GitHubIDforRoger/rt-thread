@@ -12,12 +12,9 @@
 
 #include <rtconfig.h>
 
-#define BSP_USING_SCUART
-#define BSP_USING_SCUART0
-
 #if defined(BSP_USING_SCUART)
 
-#include <NuMicro.h>
+#include "NuMicro.h"
 #include <rtdevice.h>
 #include <rthw.h>
 #include <drv_sys.h>
@@ -159,7 +156,7 @@ static rt_err_t nu_scuart_configure(struct rt_serial_device *serial,
 
     default:
         LOG_E("Unsupported data length");
-        ret = RT_EINVAL;
+        ret = -RT_EINVAL;
         goto exit_nu_scuart_configure;
     }
 
@@ -176,7 +173,7 @@ static rt_err_t nu_scuart_configure(struct rt_serial_device *serial,
 
     default:
         LOG_E("Unsupported stop bit");
-        ret = RT_EINVAL;
+        ret = -RT_EINVAL;
         goto exit_nu_scuart_configure;
     }
 
@@ -197,7 +194,7 @@ static rt_err_t nu_scuart_configure(struct rt_serial_device *serial,
 
     default:
         LOG_E("Unsupported parity");
-        ret = RT_EINVAL;
+        ret = -RT_EINVAL;
         goto exit_nu_scuart_configure;
     }
 

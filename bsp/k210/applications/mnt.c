@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -9,7 +9,7 @@
 
 #include <rtthread.h>
 #if defined(RT_USING_SPI_MSD) && defined(RT_USING_DFS_ELMFAT)
-#include <spi_msd.h>
+#include <dev_spi_msd.h>
 #include <dfs_fs.h>
 int mnt_init(void)
 {

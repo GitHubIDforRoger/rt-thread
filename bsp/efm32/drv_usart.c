@@ -1,22 +1,9 @@
-/***************************************************************************//**
- * @file    drv_usart.c
- * @brief   USART driver of RT-Thread RTOS for EFM32
- *  COPYRIGHT (C) 2012, RT-Thread Development Team
- * @author  onelife
- * @version 1.0
- *******************************************************************************
- * @section License
- * The license and distribution terms for this file may be found in the file
- *  LICENSE in this distribution or at http://www.rt-thread.org/license/LICENSE
- *******************************************************************************
- * @section Change Logs of serial.c
- * Date         Author      Notes
- * 2009-02-05   Bernard     first version
- * 2009-10-25   Bernard     fix rt_serial_read bug when there is no data in the
- *  buffer.
- * 2010-03-29   Bernard     cleanup code.
+/*
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
- * @section Change Logs
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
  * Date         Author      Notes
  * 2010-12-22   onelife     Initial creation for EFM32
  * 2011-01-17   onelife     Merge with serial.c
@@ -34,10 +21,10 @@
  * 2011-12-20   onelife     Add 9-bit SPI mode support
  * 2011-12-20   onelife     Change SPI write format (same as SPI read)
  * 2011-12-20   onelife     Change USART status format
- * 2011-12-27	onelife		Utilize "USART_PRESENT", "USART_COUNT",
- *  "UART_PRESENT" and "UART_COUNT"
- * 2012-05-16	onelife		Fix a bug in rt_hw_usart_init()
- ******************************************************************************/
+ * 2011-12-27   onelife     Utilize "USART_PRESENT", "USART_COUNT",
+ *                            "UART_PRESENT" and "UART_COUNT"
+ * 2012-05-16   onelife     Fix a bug in rt_hw_usart_init()
+ */
 
 /***************************************************************************//**
  * @addtogroup efm32
@@ -367,7 +354,7 @@ static rt_err_t rt_usart_close(rt_device_t dev)
  * @return
  *  Number of read bytes
  ******************************************************************************/
-static rt_size_t rt_usart_read (
+static rt_ssize_t rt_usart_read (
     rt_device_t     dev,
     rt_off_t        pos,
     void            *buffer,
@@ -563,7 +550,7 @@ static rt_size_t rt_usart_read (
  * @return
  *   Number of written bytes
  ******************************************************************************/
-static rt_size_t rt_usart_write (
+static rt_ssize_t rt_usart_write (
     rt_device_t     dev,
     rt_off_t        pos,
     const void*     buffer,
@@ -646,7 +633,7 @@ static rt_size_t rt_usart_write (
         //      {
         //          while(usart->state & USART_STATE_TX_BUSY)
         //          {
-        //              rt_thread_sleep(USART_WAIT_TIME_TX);
+        //              rt_thread_delay(USART_WAIT_TIME_TX);
         //          }
         //      }
             }
@@ -712,7 +699,7 @@ static rt_size_t rt_usart_write (
 //      {
 //          while(usart->state & USART_STATE_TX_BUSY)
 //          {
-//              rt_thread_sleep(USART_WAIT_TIME_TX);
+//              rt_thread_delay(USART_WAIT_TIME_TX);
 //          }
 //      }
         write_size = size;

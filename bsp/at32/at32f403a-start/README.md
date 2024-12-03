@@ -19,7 +19,7 @@ AT32F403A-START板级包支持MDK4﹑MDK5﹑IAR开发环境和GCC编译器，以
 | IDE/编译器 | 已测试版本                   |
 | ---------- | ---------------------------- |
 | MDK4       | MDK4.74                      |
-| MDK5       | MDK523                       |
+| MDK5       | MDK531                       |
 | IAR        | IAR8.20                      |
 | GCC        | GCC 5.4.1 20160919 (release) |
 
@@ -41,13 +41,18 @@ AT32F403A-START板级包支持MDK4﹑MDK5﹑IAR开发环境和GCC编译器，以
 | UART      | 支持     | USART1/2/3                 |
 | GPIO      | 支持     | PA0...PF7                  |
 | IIC       | 支持     | GPIO模拟I2C                |
+| HWIIC     | 支持     | I2C1/2/3                   |
 | SPI       | 支持     | SPI1/2                     |
 | ADC       | 支持     | ADC1/2                     |
+| DAC       | 支持     | DAC1                       |
 | PWM       | 支持     | TMR1/2                     |
 | HWTIMER   | 支持     | TMR3/4/5                   |
 | SDIO      | 支持     | SDIO1                      |
+| CAN       | 支持     | CAN1/2                     |
 | WDT       | 支持     |                            |
 | RTC       | 支持     |                            |
+| FLASH     | 支持     |                            |
+| USB       | 支持     |                            |
 
 ### IO在板级支持包中的映射情况
 
@@ -88,6 +93,14 @@ AT32F403A-START板级包支持MDK4﹑MDK5﹑IAR开发环境和GCC编译器，以
 | PC3  | ADC1/2_IN13    |
 | PC4  | ADC1/2_IN14    |
 | PC5  | ADC1/2_IN15    |
+| PA4  | DAC_OUT1       |
+| PA5  | DAC_OUT2       |
+| PB8  | CAN1_RX        |
+| PB9  | CAN1_TX        |
+| PB5  | CAN2_RX        |
+| PB6  | CAN2_TX        |
+| PA11 | USB_DM         |
+| PA12 | USB_DP         |
 
 ## 使用说明
 
@@ -105,7 +118,7 @@ AT32F403A-START板级包支持MDK4﹑MDK5﹑IAR开发环境和GCC编译器，以
 
 双击 project.uvprojx 文件，打开 MDK5 工程，编译并下载程序到开发板。
 
-> 工程默认配置使用 JLink 下载程序，在通过 JLink 连接开发板的基础上，点击下载按钮即可下载程序到开发板
+> 工程默认配置使用AT-LINK SWD下载程序，在通过AT-LINK SWD连接开发板的基础上，点击下载按钮即可下载程序到开发板
 
 #### 运行结果
 
@@ -116,8 +129,8 @@ AT32F403A-START板级包支持MDK4﹑MDK5﹑IAR开发环境和GCC编译器，以
 ```bash
  \ | /
 - RT -     Thread Operating System
- / | \     4.0.3 build Mar  9 2020
- 2006 - 2020 Copyright by rt-thread team
+ / | \     4.1.0 build Mar 23 2022
+ 2006 - 2022 Copyright by RT-Thread team
 msh />
 ```
 
@@ -129,4 +142,4 @@ msh />
 
 维护人:
 
-- [sheltonyu](https://github.com/sheltonyu) 
+- [sheltonyu]

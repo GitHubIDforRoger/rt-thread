@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -9,7 +9,8 @@
  * 2019-10-13     xuzhuoyi     add stm32f429-st-disco bsp
  */
 
-#include "board.h"
+#include <board.h>
+#include <drv_common.h>
 
 void SystemClock_Config(void)
 {
@@ -17,11 +18,11 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage 
+  /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -35,7 +36,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /** Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
@@ -48,7 +49,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /*##-2- LTDC Clock Configuration ###########################################*/  
+  /*##-2- LTDC Clock Configuration ###########################################*/
   /* LCD clock configuration */
   /* PLLSAI_VCO Input = HSE_VALUE/PLL_M = 1 MHz */
   /* PLLSAI_VCO Output = PLLSAI_VCO Input * PLLSAIN = 192 MHz */
@@ -58,5 +59,5 @@ void SystemClock_Config(void)
   PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
   PeriphClkInitStruct.PLLSAI.PLLSAIR = 4;
   PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_8;
-  HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct); 
+  HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
 }

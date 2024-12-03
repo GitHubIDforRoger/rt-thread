@@ -2,7 +2,7 @@ import os
 
 # toolchains options
 ARCH        ='risc-v'
-CPU         ='k210'
+CPU         ='rv64'
 CROSS_TOOL  ='gcc'
 
 if os.getenv('RTT_ROOT'):
@@ -51,7 +51,7 @@ if PLATFORM == 'gcc':
     else:
         CFLAGS += ' -O2 -Os'
 
-    CXXFLAGS = CFLAGS
+    CXXFLAGS = CFLAGS + ' -std=gnu++17 -Wno-multichar'
 
 DUMP_ACTION = OBJDUMP + ' -D -S $TARGET > rtt.asm\n'
 POST_ACTION = OBJCPY + ' -O binary $TARGET rtthread.bin\n' + SIZE + ' $TARGET \n'

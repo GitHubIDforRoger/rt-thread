@@ -1,12 +1,5 @@
 menu "Hardware Drivers Config"
 
-config SOC_STM32G070RB
-    bool
-    select SOC_SERIES_STM32G0
-    select RT_USING_COMPONENTS_INIT
-    select RT_USING_USER_MAIN
-    default y
-
 menu "Onboard Peripheral Drivers"
 
     config BSP_USING_USB_TO_UART
@@ -72,12 +65,12 @@ menu "On-chip Peripheral Drivers"
         endif
 
     menuconfig BSP_USING_PWM
-        bool "Enable pwm"
+        bool "Enable PWM"
         default n
         select RT_USING_PWM
         if BSP_USING_PWM
         menuconfig BSP_USING_PWM3
-            bool "Enable timer3 output pwm"
+            bool "Enable timer3 output PWM"
             default n
             if BSP_USING_PWM3
                 config BSP_USING_PWM3_CH1
@@ -168,7 +161,6 @@ menu "On-chip Peripheral Drivers"
     menuconfig BSP_USING_ONCHIP_RTC
         bool "Enable RTC"
         select RT_USING_RTC
-        select RT_USING_LIBC
         default n
         if BSP_USING_ONCHIP_RTC
             choice
@@ -187,7 +179,7 @@ menu "On-chip Peripheral Drivers"
         bool "Enable Watchdog Timer"
         select RT_USING_WDT
         default n
-    source "libraries/HAL_Drivers/Kconfig"
+    source "$(BSP_DIR)/../libraries/HAL_Drivers/drivers/Kconfig"
 
 endmenu
 

@@ -1,21 +1,7 @@
 /*
- * File      : drv_spi.c
- * This file is part of RT-Thread RTOS
- * COPYRIGHT (C) 2017, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
@@ -466,7 +452,7 @@ static rt_err_t configure(struct rt_spi_device *device,
     if (configuration->data_width != 8)
     {
         LOG_D("error: data_width is %d", configuration->data_width);
-        return RT_EIO;
+        return -RT_EIO;
     }
 
     LOG_D("%s -> %d", __FUNCTION__, __LINE__);
@@ -694,7 +680,7 @@ rt_err_t tina_spi_bus_register(SPI_T *spi, const char *spi_bus_name)
 
     LOG_D("%s -> %d", __FUNCTION__, __LINE__);
 
-    return RT_ERROR;
+    return -RT_ERROR;
 }
 
 int rt_hw_spi_init(void)

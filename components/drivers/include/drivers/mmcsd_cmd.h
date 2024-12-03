@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2023, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
- * Date           Author		Notes
- * 2011-07-25     weety		first version
+ * Date           Author        Notes
+ * 2011-07-25     weety         first version
+ * 2024-05-26     HPMicro       add VOLTAGE_SWITCH definition
  */
 
 #ifndef __CMD_H__
@@ -26,7 +27,7 @@ extern "C" {
 #define SEND_EXT_CSD          8   /* adtc                    R1  */
 #define SEND_CSD              9   /* ac   [31:16] RCA        R2  */
 #define SEND_CID             10   /* ac   [31:16] RCA        R2  */
-#define READ_DAT_UNTIL_STOP  11   /* adtc [31:0] dadr        R1  */
+#define VOLTAGE_SWITCH       11   /* ac   [31:0]             R1  */
 #define STOP_TRANSMISSION    12   /* ac                      R1b */
 #define SEND_STATUS          13   /* ac   [31:16] RCA        R1  */
 #define GO_INACTIVE_STATE    15   /* ac   [31:16] RCA            */
@@ -37,7 +38,8 @@ extern "C" {
 #define SET_BLOCKLEN         16   /* ac   [31:0] block len   R1  */
 #define READ_SINGLE_BLOCK    17   /* adtc [31:0] data addr   R1  */
 #define READ_MULTIPLE_BLOCK  18   /* adtc [31:0] data addr   R1  */
-
+#define SEND_TUNING_BLOCK    19   /* adtc                    R1 */
+#define SEND_TUNING_BLOCK_HS200 21 /* adtc R1*/
   /* class 3 */
 #define WRITE_DAT_UNTIL_STOP 20   /* adtc [31:0] data addr   R1  */
 
@@ -85,9 +87,9 @@ extern "C" {
 #define SD_APP_OP_COND           41   /* bcr  [31:0] OCR         R3  */
 #define SD_APP_SEND_SCR          51   /* adtc                    R1  */
 
-#define SCR_SPEC_VER_0		0	/* Implements system specification 1.0 - 1.01 */
-#define SCR_SPEC_VER_1		1	/* Implements system specification 1.10 */
-#define SCR_SPEC_VER_2		2	/* Implements system specification 2.00 */
+#define SCR_SPEC_VER_0      0   /* Implements system specification 1.0 - 1.01 */
+#define SCR_SPEC_VER_1      1   /* Implements system specification 1.10 */
+#define SCR_SPEC_VER_2      2   /* Implements system specification 2.00 */
 
 
 /* SDIO commands                                          type  argument     response */

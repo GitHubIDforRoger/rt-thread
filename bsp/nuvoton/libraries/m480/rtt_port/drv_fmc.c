@@ -16,7 +16,7 @@
 #include <rtdevice.h>
 #include "NuMicro.h"
 
-#if defined(PKG_USING_FAL)
+#if defined(RT_USING_FAL)
     #include <fal.h>
 #endif
 
@@ -28,7 +28,7 @@
 
 /* Private functions ------------------------------------------------------------*/
 static int nu_fmc_init(void);
-#if defined(PKG_USING_FAL)
+#if defined(RT_USING_FAL)
     static int aprom_read(long offset, uint8_t *buf, size_t size);
     static int aprom_write(long offset, const uint8_t *buf, size_t size);
     static int aprom_erase(long offset, size_t size);
@@ -36,7 +36,7 @@ static int nu_fmc_init(void);
     static int ldrom_read(long offset, uint8_t *buf, size_t size);
     static int ldrom_write(long offset, const uint8_t *buf, size_t size);
     static int ldrom_erase(long offset, size_t size);
-#endif  /* PKG_USING_FAL */
+#endif  /* RT_USING_FAL */
 
 /* Public functions -------------------------------------------------------------*/
 int nu_fmc_read(long offset, uint8_t *buf, size_t size);
@@ -47,17 +47,22 @@ int nu_fmc_erase(long offset, size_t size);
 static rt_mutex_t g_mutex_fmc = RT_NULL;
 
 /* Public variables -------------------------------------------------------------*/
-#if defined(PKG_USING_FAL)
+#if defined(RT_USING_FAL)
 const struct fal_flash_dev Onchip_aprom_flash = { "OnChip_APROM", FMC_APROM_BASE, FMC_APROM_END, FMC_FLASH_PAGE_SIZE, {NULL, aprom_read, aprom_write, aprom_erase} };
 const struct fal_flash_dev Onchip_ldrom_flash = { "OnChip_LDROM", FMC_LDROM_BASE, FMC_LDROM_END, FMC_FLASH_PAGE_SIZE, {NULL, ldrom_read, ldrom_write, ldrom_erase} };
-#endif  /* PKG_USING_FAL */
+#endif  /* RT_USING_FAL */
 
 int nu_fmc_read(long addr, uint8_t *buf, size_t size)
 {
+    rt_err_t result;
+
     size_t read_size = 0;
     uint32_t addr_end = addr + size;
     uint32_t isp_rdata = 0;
-    rt_mutex_take(g_mutex_fmc, RT_WAITING_FOREVER);
+
+    result = rt_mutex_take(g_mutex_fmc, RT_WAITING_FOREVER);
+    RT_ASSERT(result == RT_EOK);
+
     SYS_UnlockReg();
 
     if (NU_GET_LSB2BIT(addr))
@@ -87,7 +92,9 @@ int nu_fmc_read(long addr, uint8_t *buf, size_t size)
     }
 
     SYS_LockReg();
-    rt_mutex_release(g_mutex_fmc);
+
+    result = rt_mutex_release(g_mutex_fmc);
+    RT_ASSERT(result == RT_EOK);
 
     return read_size;
 }
@@ -97,8 +104,11 @@ int nu_fmc_write(long addr, const uint8_t *buf, size_t size)
     size_t write_size = 0;
     uint32_t addr_end = addr + size;
     uint32_t isp_rdata = 0;
+    rt_err_t result;
 
-    rt_mutex_take(g_mutex_fmc, RT_WAITING_FOREVER);
+    result = rt_mutex_take(g_mutex_fmc, RT_WAITING_FOREVER);
+    RT_ASSERT(result == RT_EOK);
+
     SYS_UnlockReg();
 
     if (addr < FMC_APROM_END)
@@ -144,9 +154,12 @@ int nu_fmc_write(long addr, const uint8_t *buf, size_t size)
 
     FMC_DISABLE_AP_UPDATE();
     FMC_DISABLE_LD_UPDATE();
+
 Exit2:
     SYS_LockReg();
-    rt_mutex_release(g_mutex_fmc);
+
+    result = rt_mutex_release(g_mutex_fmc);
+    RT_ASSERT(result == RT_EOK);
 
     return write_size;
 
@@ -157,11 +170,11 @@ int nu_fmc_erase(long addr, size_t size)
     size_t erased_size = 0;
     uint32_t addrptr;
     uint32_t addr_end = addr + size;
+    rt_err_t result;
 
 #if defined(NU_SUPPORT_NONALIGN)
     uint8_t *page_sdtemp = RT_NULL;
     uint8_t *page_edtemp = RT_NULL;
-
 
     addrptr = addr & (FMC_FLASH_PAGE_SIZE - 1);
     if (addrptr)
@@ -205,7 +218,9 @@ int nu_fmc_erase(long addr, size_t size)
     }
 #endif
 
-    rt_mutex_take(g_mutex_fmc, RT_WAITING_FOREVER);
+    result = rt_mutex_take(g_mutex_fmc, RT_WAITING_FOREVER);
+    RT_ASSERT(result == RT_EOK);
+
     SYS_UnlockReg();
 
     if (addr <= FMC_APROM_END)
@@ -233,7 +248,9 @@ Exit1:
     FMC_DISABLE_LD_UPDATE();
 Exit2:
     SYS_LockReg();
-    rt_mutex_release(g_mutex_fmc);
+
+    result = rt_mutex_release(g_mutex_fmc);
+    RT_ASSERT(result == RT_EOK);
 
 #if defined(NU_SUPPORT_NONALIGN)
 
@@ -274,7 +291,7 @@ Exit3:
     return erased_size;
 }
 
-#if defined(PKG_USING_FAL)
+#if defined(RT_USING_FAL)
 
 static int aprom_read(long offset, uint8_t *buf, size_t size)
 {
@@ -306,7 +323,7 @@ static int ldrom_erase(long offset, size_t size)
     return nu_fmc_erase(Onchip_ldrom_flash.addr + offset, size);
 }
 
-#endif /* PKG_USING_FAL */
+#endif /* RT_USING_FAL */
 
 static int nu_fmc_init(void)
 {
@@ -314,10 +331,11 @@ static int nu_fmc_init(void)
     FMC_ENABLE_ISP();
     SYS_LockReg();
 
-    g_mutex_fmc = rt_mutex_create("nu_fmc_lock", RT_IPC_FLAG_FIFO);
+    g_mutex_fmc = rt_mutex_create("nu_fmc_lock", RT_IPC_FLAG_PRIO);
+    RT_ASSERT(g_mutex_fmc != RT_NULL);
 
-    /* PKG_USING_FAL */
-#if defined(PKG_USING_FAL)
+    /* RT_USING_FAL */
+#if defined(RT_USING_FAL)
     fal_init();
 #endif
 

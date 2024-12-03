@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2006-2020, RT-Thread Development Team
+ /*
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -14,7 +14,7 @@
 #include "drv_uart.h"
 
 #ifdef BSP_USING_UART
-#if defined(BSP_USING_UART0) || defined(BSP_USING_UART1)
+#if defined(BSP_USING_UART0) || defined(BSP_USING_UART1)|| defined(BSP_USING_UART2)|| defined(BSP_USING_UART3)
 typedef struct
 {
     struct rt_serial_device *serial;
@@ -48,6 +48,27 @@ drv_uart_cb_t m_uarte1_cb = {
     .isInit = false
 };
 #endif  /* BSP_USING_UART1 */
+#ifdef BSP_USING_UART2
+static struct rt_serial_device m_serial_2;
+drv_uart_cb_t m_uarte2_cb = {
+    .uarte_instance = NRFX_UARTE_INSTANCE(2),
+    .rx_length = 0,
+    .rx_pin = BSP_UART2_RX_PIN,
+    .tx_pin = BSP_UART2_TX_PIN,
+    .isInit = false
+};
+#endif  /* BSP_USING_UART2 */
+#ifdef BSP_USING_UART3
+static struct rt_serial_device m_serial_3;
+drv_uart_cb_t m_uarte3_cb = {
+    .uarte_instance = NRFX_UARTE_INSTANCE(3),
+    .rx_length = 0,
+    .rx_pin = BSP_UART3_RX_PIN,
+    .tx_pin = BSP_UART3_TX_PIN,
+    .isInit = false
+};
+#endif  /* BSP_USING_UART3 */
+
 
 static void uarte_evt_handler(nrfx_uarte_event_t const * p_event,
                               void *                     p_context)
@@ -68,7 +89,7 @@ static void uarte_evt_handler(nrfx_uarte_event_t const * p_event,
         case NRFX_UARTE_EVT_ERROR:
             (void)nrfx_uarte_rx(&(p_cb->uarte_instance), p_cb->rx_buffer, 1);
             break;
-        
+
         case NRFX_UARTE_EVT_TX_DONE:
             if(p_cb->serial->parent.open_flag&RT_DEVICE_FLAG_INT_TX)
             {
@@ -90,7 +111,7 @@ static rt_err_t _uart_cfg(struct rt_serial_device *serial, struct serial_configu
 
     RT_ASSERT(serial != RT_NULL);
     RT_ASSERT(cfg != RT_NULL);
-  
+
     if (serial->parent.user_data == RT_NULL)
     {
         return -RT_ERROR;
@@ -134,6 +155,11 @@ static rt_err_t _uart_cfg(struct rt_serial_device *serial, struct serial_configu
     case BAUD_RATE_921600:
         config.baudrate = NRF_UARTE_BAUDRATE_921600;
         break;
+#if defined(SOC_NRF5340)
+    case 1000000:
+        config.baudrate = NRF_UARTE_BAUDRATE_1000000;
+        break;
+#endif /* SOC_NRF5340*/
     case BAUD_RATE_2000000:
     case BAUD_RATE_3000000:
         return -RT_EINVAL;
@@ -145,11 +171,11 @@ static rt_err_t _uart_cfg(struct rt_serial_device *serial, struct serial_configu
                             NRF_UARTE_PARITY_EXCLUDED:NRF_UARTE_PARITY_INCLUDED;
     config.hal_cfg.hwfc = NRF_UARTE_HWFC_DISABLED;
     config.pselrxd = p_cb->rx_pin;
-    config.pseltxd = p_cb->tx_pin;   
+    config.pseltxd = p_cb->tx_pin;
     config.p_context = (void *)p_cb;
 
     nrfx_uarte_init(&(p_cb->uarte_instance),(nrfx_uarte_config_t const *)&config,uarte_evt_handler);
-    nrfx_uarte_rx(&(p_cb->uarte_instance),p_cb->rx_buffer,1);    
+    nrfx_uarte_rx(&(p_cb->uarte_instance),p_cb->rx_buffer,1);
     p_cb->isInit = true;
     return RT_EOK;
 }
@@ -227,7 +253,7 @@ static int _uart_putc(struct rt_serial_device *serial, char c)
         while(nrfx_uarte_tx_in_progress(&(p_cb->uarte_instance)))
         {
         }
-    } 
+    }
     return rtn;
 }
 
@@ -240,7 +266,7 @@ static int _uart_getc(struct rt_serial_device *serial)
     if (serial->parent.user_data != RT_NULL)
     {
         p_cb = (drv_uart_cb_t*)serial->parent.user_data;
-    }  
+    }
     if(p_cb->rx_length)
     {
         ch = p_cb->rx_buffer[0];
@@ -256,26 +282,46 @@ static struct rt_uart_ops _uart_ops = {
     _uart_getc
 };
 
-void rt_hw_uart_init(void)
+int rt_hw_uart_init(void)
 {
     struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
 
-#ifdef BSP_USING_UART0 
+#ifdef BSP_USING_UART0
     m_serial_0.config = config;
+#if defined(SOC_NRF5340)
+    m_serial_0.config.baud_rate =  1000000;
+#endif /* SOC_NRF5340*/
     m_serial_0.ops = &_uart_ops;
     m_uarte0_cb.serial = &m_serial_0;
     rt_hw_serial_register(&m_serial_0, "uart0", \
-                            RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX ,  &m_uarte0_cb);
+                            RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX | RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX ,  &m_uarte0_cb);
 #endif  /* BSP_USING_UART0 */
-    
-#ifdef BSP_USING_UART1 
+
+#ifdef BSP_USING_UART1
     m_serial_1.config = config;
     m_serial_1.ops = &_uart_ops;
     m_uarte1_cb.serial = &m_serial_1;
     rt_hw_serial_register(&m_serial_1, "uart1", \
-                            RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX |RT_DEVICE_FLAG_INT_TX,  &m_uarte1_cb);
+                            RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX |RT_DEVICE_FLAG_INT_TX | RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX,  &m_uarte1_cb);
 #endif  /* BSP_USING_UART1 */
 
+#ifdef BSP_USING_UART2
+    m_serial_2.config = config;
+    m_serial_2.ops = &_uart_ops;
+    m_uarte2_cb.serial = &m_serial_2;
+    rt_hw_serial_register(&m_serial_2, "uart2", \
+                            RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX |RT_DEVICE_FLAG_INT_TX | RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX,  &m_uarte2_cb);
+#endif  /* BSP_USING_UART2 */
+
+#ifdef BSP_USING_UART3
+    m_serial_3.config = config;
+    m_serial_3.ops = &_uart_ops;
+    m_uarte3_cb.serial = &m_serial_3;
+    rt_hw_serial_register(&m_serial_3, "uart3", \
+                            RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX |RT_DEVICE_FLAG_INT_TX | RT_DEVICE_FLAG_DMA_RX | RT_DEVICE_FLAG_DMA_TX,  &m_uarte3_cb);
+#endif  /* BSP_USING_UART3 */
+
+        return RT_EOK;
 }
 #endif /* defined(BSP_USING_UART0) || defined(BSP_USING_UART1) */
 #endif /* BSP_USING_UART */

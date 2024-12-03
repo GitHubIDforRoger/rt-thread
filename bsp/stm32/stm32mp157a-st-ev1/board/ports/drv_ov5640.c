@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2022, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -13,7 +13,11 @@
 #if defined(BSP_USING_DCMI)
 
 #include "drv_mfx.h"
-#include <dfs_posix.h>
+#include <dfs_file.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
 #include "drv_ov5640.h"
 
 //#define DRV_DEBUG
@@ -27,7 +31,7 @@
 #define JPEG_BUF_SIZE   8 * 1024
 #define JPEG_LINE_SIZE  1 * 1024
 
-#if defined(__CC_ARM) || defined(__CLANG_ARM)
+#if defined(__ARMCC_VERSION)
 __attribute__((at(0x2FFCC000))) static rt_int32_t JPEG_DATA_BUF[JPEG_BUF_SIZE];
 #elif defined(__GNUC__)
 static rt_int32_t JPEG_DATA_BUF[JPEG_BUF_SIZE] __attribute__((section(".Dcmi0Section")));
@@ -36,13 +40,13 @@ static rt_int32_t JPEG_DATA_BUF[JPEG_BUF_SIZE] __attribute__((section(".Dcmi0Sec
 __no_init static rt_int32_t JPEG_DATA_BUF[JPEG_BUF_SIZE];
 #endif
 
-#if defined(__CC_ARM) || defined(__CLANG_ARM)
+#if defined(__ARMCC_VERSION)
 __attribute__((at(0x2FFDC000))) static rt_int32_t JPEG_LINE_BUF[2][JPEG_LINE_SIZE];
 #elif defined(__GNUC__)
-static rt_int32_t JPEG_LINE_BUF[2][JPEG_LINE_SIZE]  __attribute__((section(".Dcmi1Section")));            
+static rt_int32_t JPEG_LINE_BUF[2][JPEG_LINE_SIZE]  __attribute__((section(".Dcmi1Section")));
 #elif defined(__ICCARM__)
 #pragma location = 0x2FFDC000
-__no_init static rt_int32_t JPEG_LINE_BUF[2][JPEG_LINE_SIZE]; 
+__no_init static rt_int32_t JPEG_LINE_BUF[2][JPEG_LINE_SIZE];
 #endif
 
 volatile rt_uint32_t jpeg_data_len = 0;
@@ -112,7 +116,7 @@ static rt_err_t read_reg(struct rt_i2c_bus_device *bus, rt_uint16_t reg, rt_uint
         return RT_EOK;
     }
 
-    return RT_ERROR;
+    return -RT_ERROR;
 }
 
 /* i2c write reg */
@@ -138,7 +142,7 @@ static rt_err_t write_reg(struct rt_i2c_bus_device *bus, rt_uint16_t reg, rt_uin
         return RT_EOK;
     }
 
-    return RT_ERROR;
+    return -RT_ERROR;
 }
 
 static rt_err_t ov5640_read_id(struct rt_i2c_bus_device *bus, rt_uint16_t *id)
@@ -153,7 +157,7 @@ static rt_err_t ov5640_read_id(struct rt_i2c_bus_device *bus, rt_uint16_t *id)
     if (*id != OV5640_ID)
     {
         LOG_E("ov5640 init error, id: 0x%04x", *id);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     LOG_I("ov5640 init success, id: 0x%04x", *id);
@@ -282,7 +286,7 @@ rt_uint8_t ov5640_focus_init(struct rt_i2c_bus_device *bus)
         read_reg(bus, 0x3029, 1, &state);
         if (rt_tick_get() - tickstart > 1000)
         {
-            return RT_ERROR;
+            return -RT_ERROR;
         }
     } while (state != 0x70);
 
@@ -423,7 +427,7 @@ rt_uint8_t ov5640_focus_constant(struct rt_i2c_bus_device *bus)
         read_reg(bus, 0x3023, 1, &temp);
         if (rt_tick_get() - tickstrat > 1000)
         {
-            return RT_ERROR;
+            return -RT_ERROR;
         }
     } while (temp != 0x00);
 
@@ -436,7 +440,7 @@ rt_uint8_t ov5640_focus_constant(struct rt_i2c_bus_device *bus)
         read_reg(bus, 0x3023, 1, &temp);
         if (rt_tick_get() - tickstrat > 1000)
         {
-            return RT_ERROR;
+            return -RT_ERROR;
         }
     } while (temp != 0x00);
 
@@ -539,7 +543,7 @@ int rt_hw_ov5640_init(void)
     if (i2c_bus == RT_NULL)
     {
         LOG_E("can't find %c deivce", I2C_NAME);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     ov5640_hard_reset(i2c_bus);
@@ -560,7 +564,7 @@ int rt_hw_ov5640_init(void)
     if (dcmi_dev == RT_NULL)
     {
         LOG_E("can't find dcmi device!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
     rt_device_open(dcmi_dev, RT_DEVICE_FLAG_RDWR);
 

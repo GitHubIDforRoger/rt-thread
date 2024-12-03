@@ -14,6 +14,7 @@
 
 #if defined(NU_PKG_USING_BMX055)
 
+#include <sys/time.h>
 #include <string.h>
 #include "sensor_bmx055.h"
 
@@ -247,14 +248,15 @@ static double get_mdps_value(int32_t i32AccelVal)
     return 0.0f;
 }
 
-static rt_size_t bmx055_fetch_data(rt_sensor_t sensor, void *buf, rt_size_t len)
+static rt_ssize_t bmx055_fetch_data(rt_sensor_t sensor, rt_sensor_data_t data, rt_size_t len)
 {
-    struct rt_sensor_data *data = (struct rt_sensor_data *)buf;
+    RT_ASSERT(data);
+
     switch (sensor->info.type)
     {
-    case RT_SENSOR_CLASS_ACCE:
+    case RT_SENSOR_TYPE_ACCE:
         bma2x2_read_accel_xyzt(&g_sbmx055.accel_xyzt);
-        data->type = RT_SENSOR_CLASS_ACCE;
+        data->type = RT_SENSOR_TYPE_ACCE;
 
         /* Report mg */
         data->data.acce.x = (int32_t)get_mg_value(g_sbmx055.accel_xyzt.x);
@@ -262,9 +264,9 @@ static rt_size_t bmx055_fetch_data(rt_sensor_t sensor, void *buf, rt_size_t len)
         data->data.acce.z = (int32_t)get_mg_value(g_sbmx055.accel_xyzt.z);
         break;
 
-    case RT_SENSOR_CLASS_GYRO:
+    case RT_SENSOR_TYPE_GYRO:
         bmg160_get_data_XYZI(&g_sbmx055.gyro_xyzi);
-        data->type = RT_SENSOR_CLASS_GYRO;
+        data->type = RT_SENSOR_TYPE_GYRO;
 
         /* Report mdps */
         data->data.gyro.x = (int32_t)get_mdps_value(g_sbmx055.gyro_xyzi.datax);
@@ -272,9 +274,9 @@ static rt_size_t bmx055_fetch_data(rt_sensor_t sensor, void *buf, rt_size_t len)
         data->data.gyro.z = (int32_t)get_mdps_value(g_sbmx055.gyro_xyzi.dataz);
         break;
 
-    case RT_SENSOR_CLASS_MAG:
+    case RT_SENSOR_TYPE_MAG:
         bmm050_read_mag_data_XYZ(&g_sbmx055.mag_data);
-        data->type = RT_SENSOR_CLASS_MAG;
+        data->type = RT_SENSOR_TYPE_MAG;
 
         /* Report mquass */
         data->data.mag.x = g_sbmx055.mag_data.datax;
@@ -306,15 +308,15 @@ static rt_err_t bmx055_getid(rt_sensor_t sensor, rt_uint8_t *pu8)
 {
     switch (sensor->info.type)
     {
-    case RT_SENSOR_CLASS_ACCE:
+    case RT_SENSOR_TYPE_ACCE:
         *pu8 = g_sbmx055.accel.chip_id;
         break;
 
-    case RT_SENSOR_CLASS_GYRO:
+    case RT_SENSOR_TYPE_GYRO:
         *pu8 = g_sbmx055.gyro.chip_id;
         break;
 
-    case RT_SENSOR_CLASS_MAG:
+    case RT_SENSOR_TYPE_MAG:
         *pu8 = g_sbmx055.mag.company_id;
         break;
     }
@@ -328,19 +330,19 @@ static rt_err_t bmx055_set_power(rt_sensor_t sensor, rt_uint8_t power_mode)
 
     switch (sensor->info.type)
     {
-    case RT_SENSOR_CLASS_ACCE:
+    case RT_SENSOR_TYPE_ACCE:
     {
         switch (power_mode)
         {
-        case RT_SENSOR_POWER_DOWN:
+        case RT_SENSOR_MODE_POWER_DOWN:
             power_ctr = BMA2x2_MODE_STANDBY;
             break;
 
-        case RT_SENSOR_POWER_NORMAL:
+        case RT_SENSOR_MODE_POWER_MEDIUM:
             power_ctr = BMA2x2_MODE_NORMAL;
             break;
 
-        case RT_SENSOR_POWER_LOW:
+        case RT_SENSOR_MODE_POWER_LOW:
             power_ctr = BMA2x2_MODE_LOWPOWER1;
             break;
 
@@ -354,15 +356,15 @@ static rt_err_t bmx055_set_power(rt_sensor_t sensor, rt_uint8_t power_mode)
     }
     break;
 
-    case RT_SENSOR_CLASS_GYRO:
+    case RT_SENSOR_TYPE_GYRO:
     {
         switch (power_mode)
         {
-        case RT_SENSOR_POWER_DOWN:
+        case RT_SENSOR_MODE_POWER_DOWN:
             power_ctr = BMG160_MODE_DEEPSUSPEND;
             break;
 
-        case RT_SENSOR_POWER_NORMAL:
+        case RT_SENSOR_MODE_POWER_MEDIUM:
             power_ctr = BMG160_MODE_NORMAL;
             break;
 
@@ -376,15 +378,15 @@ static rt_err_t bmx055_set_power(rt_sensor_t sensor, rt_uint8_t power_mode)
     }
     break;
 
-    case RT_SENSOR_CLASS_MAG:
+    case RT_SENSOR_TYPE_MAG:
     {
         switch (power_mode)
         {
-        case RT_SENSOR_POWER_DOWN:
+        case RT_SENSOR_MODE_POWER_DOWN:
             power_ctr = 0;
             break;
 
-        case RT_SENSOR_POWER_NORMAL:
+        case RT_SENSOR_MODE_POWER_MEDIUM:
             power_ctr = 1;
             break;
 
@@ -411,7 +413,7 @@ static rt_err_t bmx055_set_range(rt_sensor_t sensor, rt_uint16_t range)
 
     switch (sensor->info.type)
     {
-    case RT_SENSOR_CLASS_ACCE:
+    case RT_SENSOR_TYPE_ACCE:
     {
         idx = find_param_index(range, accel_ranges, sizeof(accel_ranges));
         if (bma2x2_set_range(accel_ranges[idx].reg) != 0)
@@ -421,7 +423,7 @@ static rt_err_t bmx055_set_range(rt_sensor_t sensor, rt_uint16_t range)
     }
     break;
 
-    case RT_SENSOR_CLASS_GYRO:
+    case RT_SENSOR_TYPE_GYRO:
     {
         idx = find_param_index(range, gyro_ranges, sizeof(gyro_ranges));
         if (bmg160_set_range_reg(gyro_ranges[idx].reg) != 0)
@@ -445,7 +447,7 @@ static rt_err_t bmx055_set_odr(rt_sensor_t sensor, rt_uint16_t odr_hz)
     int idx;
     switch (sensor->info.type)
     {
-    case RT_SENSOR_CLASS_ACCE:
+    case RT_SENSOR_TYPE_ACCE:
     {
         idx = find_param_index(odr_hz, accel_odr, sizeof(accel_odr));
         if (bma2x2_set_bw(accel_odr[idx].reg) != 0)
@@ -453,7 +455,7 @@ static rt_err_t bmx055_set_odr(rt_sensor_t sensor, rt_uint16_t odr_hz)
     }
     break;
 
-    case RT_SENSOR_CLASS_GYRO:
+    case RT_SENSOR_TYPE_GYRO:
     {
         idx = find_param_index(odr_hz, gyro_odr, sizeof(gyro_odr));
         if (bmg160_set_bw(gyro_odr[idx].reg) != 0)
@@ -461,7 +463,7 @@ static rt_err_t bmx055_set_odr(rt_sensor_t sensor, rt_uint16_t odr_hz)
     }
     break;
 
-    case RT_SENSOR_CLASS_MAG:
+    case RT_SENSOR_TYPE_MAG:
     {
         idx = find_param_index(odr_hz, mag_odr, sizeof(mag_odr));
         if (bmm050_set_data_rate(mag_odr[idx].reg) != 0)
@@ -482,8 +484,8 @@ exit_bmx055_set_power:
 
 static rt_err_t bmx055_control(rt_sensor_t sensor, int cmd, void *args)
 {
-    RT_ASSERT(sensor != RT_NULL);
-    RT_ASSERT(args != RT_NULL);
+    RT_ASSERT(sensor);
+    RT_ASSERT(args);
 
     switch (cmd)
     {
@@ -495,7 +497,7 @@ static rt_err_t bmx055_control(rt_sensor_t sensor, int cmd, void *args)
     case RT_SENSOR_CTRL_SET_RANGE:
         return bmx055_set_range(sensor, (rt_uint32_t)args);
 
-    case RT_SENSOR_CTRL_SET_POWER:
+    case RT_SENSOR_CTRL_SET_POWER_MODE:
         return bmx055_set_power(sensor, ((rt_uint32_t)args & 0xff));
 
     case RT_SENSOR_CTRL_SET_ODR:
@@ -520,14 +522,14 @@ static int rt_hw_bmx055_accel_init(const char *name, struct rt_sensor_config *cf
     if (sensor == RT_NULL)
         return -(RT_ENOMEM);
 
-    sensor->info.type       = RT_SENSOR_CLASS_ACCE;
-    sensor->info.vendor     = RT_SENSOR_VENDOR_BOSCH;
-    sensor->info.model      = "bmx055_acce";
-    sensor->info.unit       = RT_SENSOR_UNIT_MG;
-    sensor->info.intf_type  = RT_SENSOR_INTF_I2C;
-    sensor->info.range_max  = 16000;
-    sensor->info.range_min  = 2000;
-    sensor->info.period_min = 100;
+    sensor->info.type            = RT_SENSOR_TYPE_ACCE;
+    sensor->info.vendor          = RT_SENSOR_VENDOR_BOSCH;
+    sensor->info.name            = "bmx055_acce";
+    sensor->info.unit            = RT_SENSOR_UNIT_MG;
+    sensor->info.intf_type       = RT_SENSOR_INTF_I2C;
+    sensor->info.scale.range_max = 16000;
+    sensor->info.scale.range_min = 2000;
+    sensor->info.acquire_min     = 100;
 
     rt_memcpy(&sensor->config, cfg, sizeof(struct rt_sensor_config));
     sensor->ops = &sensor_ops;
@@ -551,14 +553,14 @@ static int rt_hw_bmx055_gyro_init(const char *name, struct rt_sensor_config *cfg
     if (sensor == RT_NULL)
         return -(RT_ENOMEM);
 
-    sensor->info.type       = RT_SENSOR_CLASS_GYRO;
-    sensor->info.vendor     = RT_SENSOR_VENDOR_BOSCH;
-    sensor->info.model      = "bmx055_gyro";
-    sensor->info.unit       = RT_SENSOR_UNIT_MDPS;
-    sensor->info.intf_type  = RT_SENSOR_INTF_I2C;
-    sensor->info.range_max  = 2000;
-    sensor->info.range_min  = 125;
-    sensor->info.period_min = 100;
+    sensor->info.type            = RT_SENSOR_TYPE_GYRO;
+    sensor->info.vendor          = RT_SENSOR_VENDOR_BOSCH;
+    sensor->info.name            = "bmx055_gyro";
+    sensor->info.unit            = RT_SENSOR_UNIT_MDPS;
+    sensor->info.intf_type       = RT_SENSOR_INTF_I2C;
+    sensor->info.scale.range_max = 2000;
+    sensor->info.scale.range_min = 125;
+    sensor->info.acquire_min     = 100;
 
     rt_memcpy(&sensor->config, cfg, sizeof(struct rt_sensor_config));
     sensor->ops = &sensor_ops;
@@ -582,14 +584,14 @@ static int rt_hw_bmx055_mag_init(const char *name, struct rt_sensor_config *cfg)
     if (sensor == RT_NULL)
         return -(RT_ENOMEM);
 
-    sensor->info.type       = RT_SENSOR_CLASS_MAG;
-    sensor->info.vendor     = RT_SENSOR_VENDOR_BOSCH;
-    sensor->info.model      = "bmx055_mag";
-    sensor->info.unit       = RT_SENSOR_UNIT_MGAUSS;
-    sensor->info.intf_type  = RT_SENSOR_INTF_I2C;
-    sensor->info.range_max  = 25000; // 1uT = 10*mGauss, X/Y: 1300uT=13000mGauss, Z: 2500uT=25000mG
-    sensor->info.range_min  = 0;
-    sensor->info.period_min = 100;
+    sensor->info.type            = RT_SENSOR_TYPE_MAG;
+    sensor->info.vendor          = RT_SENSOR_VENDOR_BOSCH;
+    sensor->info.name            = "bmx055_mag";
+    sensor->info.unit            = RT_SENSOR_UNIT_MGAUSS;
+    sensor->info.intf_type       = RT_SENSOR_INTF_I2C;
+    sensor->info.scale.range_max = 25000; // 1uT = 10*mGauss, X/Y: 1300uT=13000mGauss, Z: 2500uT=25000mG
+    sensor->info.scale.range_min = 0;
+    sensor->info.acquire_min     = 100;
 
     rt_memcpy(&sensor->config, cfg, sizeof(struct rt_sensor_config));
     sensor->ops = &sensor_ops;

@@ -66,7 +66,7 @@ static void nu_pdma_channel_disable(int i32ChannID);
 static void nu_pdma_channel_reset(int i32ChannID);
 static rt_err_t nu_pdma_timeout_set(int i32ChannID, int i32Timeout_us);
 static void nu_pdma_periph_ctrl_fill(int i32ChannID, int i32CtlPoolIdx);
-static rt_size_t nu_pdma_memfun(void *dest, void *src, uint32_t u32DataWidth, unsigned int count, nu_pdma_memctrl_t eMemCtl);
+static rt_ssize_t nu_pdma_memfun(void *dest, void *src, uint32_t u32DataWidth, unsigned int count, nu_pdma_memctrl_t eMemCtl);
 static void nu_pdma_memfun_cb(void *pvUserData, uint32_t u32Events);
 static void nu_pdma_memfun_actor_init(void);
 static int nu_pdma_memfun_employ(void);
@@ -208,14 +208,14 @@ static void nu_pdma_init(void)
     if (nu_pdma_inited)
         return;
 
-    g_mutex_res = rt_mutex_create("pdmalock", RT_IPC_FLAG_FIFO);
+    g_mutex_res = rt_mutex_create("pdmalock", RT_IPC_FLAG_PRIO);
     RT_ASSERT(g_mutex_res != RT_NULL);
 
-    g_mutex_sg = rt_mutex_create("sgtbles", RT_IPC_FLAG_FIFO);
+    g_mutex_sg = rt_mutex_create("sgtbles", RT_IPC_FLAG_PRIO);
     RT_ASSERT(g_mutex_sg != RT_NULL);
 
     nu_pdma_chn_mask = ~NU_PDMA_CH_Msk;
-    rt_memset(nu_pdma_chn_arr, 0x00, sizeof(nu_pdma_chn_t));
+    rt_memset(nu_pdma_chn_arr, 0x00, NU_PDMA_CH_MAX * sizeof(nu_pdma_chn_t));
 
     NVIC_EnableIRQ(PDMA_IRQn);
 
@@ -228,10 +228,13 @@ static void nu_pdma_init(void)
     /* Assign first SG table address as PDMA SG table base address */
     PDMA->SCATBA = (uint32_t)&nu_pdma_sgtbl_arr[0];
 
-    /* Initializa token pool. */
+    /* Initialize token pool. */
     rt_memset(&nu_pdma_sgtbl_token[0], 0xff, sizeof(nu_pdma_sgtbl_token));
-    latest = NU_PDMA_SGTBL_POOL_SIZE / 32;
-    nu_pdma_sgtbl_token[latest] ^= ~((1 << (NU_PDMA_SGTBL_POOL_SIZE % 32)) - 1) ;
+    if (NU_PDMA_SGTBL_POOL_SIZE % 32)
+    {
+        latest = (NU_PDMA_SGTBL_POOL_SIZE) / 32;
+        nu_pdma_sgtbl_token[latest] ^= ~((1 << (NU_PDMA_SGTBL_POOL_SIZE % 32)) - 1) ;
+    }
 
     nu_pdma_inited = 1;
 }
@@ -256,11 +259,13 @@ void nu_pdma_channel_terminate(int i32ChannID)
     int i;
     uint32_t u32EnabledChans;
     int ch_mask = 0;
+    rt_err_t  result;
 
     if (!(nu_pdma_chn_mask & (1 << i32ChannID)))
         goto exit_pdma_channel_terminate;
 
-    rt_mutex_take(g_mutex_res, RT_WAITING_FOREVER);
+    result = rt_mutex_take(g_mutex_res, RT_WAITING_FOREVER);
+    RT_ASSERT(result == RT_EOK);
 
     // Suspend all channels.
     u32EnabledChans = nu_pdma_chn_mask & NU_PDMA_CH_Msk;
@@ -299,7 +304,8 @@ void nu_pdma_channel_terminate(int i32ChannID)
         u32EnabledChans &= ~ch_mask;
     }
 
-    rt_mutex_release(g_mutex_res);
+    result = rt_mutex_release(g_mutex_res);
+    RT_ASSERT(result == RT_EOK);
 
 exit_pdma_channel_terminate:
 
@@ -308,7 +314,7 @@ exit_pdma_channel_terminate:
 
 static rt_err_t nu_pdma_timeout_set(int i32ChannID, int i32Timeout_us)
 {
-    rt_err_t ret = RT_EINVAL;
+    rt_err_t ret = -RT_EINVAL;
 
     if (!(nu_pdma_chn_mask & (1 << i32ChannID)))
         goto exit_nu_pdma_timeout_set;
@@ -379,7 +385,7 @@ exit_nu_pdma_channel_allocate:
 
 rt_err_t nu_pdma_channel_free(int i32ChannID)
 {
-    rt_err_t ret = RT_EINVAL;
+    rt_err_t ret = -RT_EINVAL;
 
     if (! nu_pdma_inited)
         goto exit_nu_pdma_channel_free;
@@ -397,7 +403,7 @@ exit_nu_pdma_channel_free:
 
 rt_err_t nu_pdma_callback_register(int i32ChannID, nu_pdma_cb_handler_t pfnHandler, void *pvUserData, uint32_t u32EventFilter)
 {
-    rt_err_t ret = RT_EINVAL;
+    rt_err_t ret = -RT_EINVAL;
 
     if (!(nu_pdma_chn_mask & (1 << i32ChannID)))
         goto exit_nu_pdma_callback_register;
@@ -485,7 +491,7 @@ exit_nu_pdma_channel_memctrl_get:
 
 rt_err_t nu_pdma_channel_memctrl_set(int i32ChannID, nu_pdma_memctrl_t eMemCtrl)
 {
-    rt_err_t ret = RT_EINVAL;
+    rt_err_t ret = -RT_EINVAL;
     nu_pdma_chn_t *psPdmaChann = &nu_pdma_chn_arr[i32ChannID - NU_PDMA_CH_Pos];
 
 
@@ -542,7 +548,7 @@ rt_err_t nu_pdma_desc_setup(int i32ChannID, nu_pdma_desc_t dma_desc, uint32_t u3
     uint32_t u32SrcCtl = 0;
     uint32_t u32DstCtl = 0;
 
-    rt_err_t ret = RT_EINVAL;
+    rt_err_t ret = -RT_EINVAL;
 
     if (!dma_desc)
         goto exit_nu_pdma_desc_setup;
@@ -552,7 +558,7 @@ rt_err_t nu_pdma_desc_setup(int i32ChannID, nu_pdma_desc_t dma_desc, uint32_t u3
         goto exit_nu_pdma_desc_setup;
     else if ((u32AddrSrc % (u32DataWidth / 8)) || (u32AddrDst % (u32DataWidth / 8)))
         goto exit_nu_pdma_desc_setup;
-    else if ( i32TransferCnt > NU_PDMA_MAX_TXCNT )
+    else if (i32TransferCnt > NU_PDMA_MAX_TXCNT)
         goto exit_nu_pdma_desc_setup;
 
     psPeriphCtl = &nu_pdma_chn_arr[i32ChannID - NU_PDMA_CH_Pos].m_spPeripCtl;
@@ -625,11 +631,13 @@ static void nu_pdma_sgtbls_token_free(nu_pdma_desc_t psSgtbls)
 rt_err_t nu_pdma_sgtbls_allocate(nu_pdma_desc_t *ppsSgtbls, int num)
 {
     int i, j, idx;
+    rt_err_t result;
 
     RT_ASSERT(ppsSgtbls != NULL);
     RT_ASSERT(num <= NU_PDMA_SG_TBL_MAXSIZE);
 
-    rt_mutex_take(g_mutex_sg, RT_WAITING_FOREVER);
+    result = rt_mutex_take(g_mutex_sg, RT_WAITING_FOREVER);
+    RT_ASSERT(result == RT_EOK);
 
     for (i = 0; i < num; i++)
     {
@@ -644,7 +652,8 @@ rt_err_t nu_pdma_sgtbls_allocate(nu_pdma_desc_t *ppsSgtbls, int num)
         ppsSgtbls[i] = (nu_pdma_desc_t)&nu_pdma_sgtbl_arr[idx];
     }
 
-    rt_mutex_release(g_mutex_sg);
+    result = rt_mutex_release(g_mutex_sg);
+    RT_ASSERT(result == RT_EOK);
 
     return RT_EOK;
 
@@ -660,18 +669,22 @@ fail_nu_pdma_sgtbls_allocate:
         ppsSgtbls[j] = NULL;
     }
 
-    rt_mutex_release(g_mutex_sg);
+    result = rt_mutex_release(g_mutex_sg);
+    RT_ASSERT(result == RT_EOK);
+
     return -RT_ERROR;
 }
 
 void nu_pdma_sgtbls_free(nu_pdma_desc_t *ppsSgtbls, int num)
 {
     int i;
+    rt_err_t result;
 
     RT_ASSERT(ppsSgtbls != NULL);
     RT_ASSERT(num <= NU_PDMA_SG_TBL_MAXSIZE);
 
-    rt_mutex_take(g_mutex_sg, RT_WAITING_FOREVER);
+    result = rt_mutex_take(g_mutex_sg, RT_WAITING_FOREVER);
+    RT_ASSERT(result == RT_EOK);
 
     for (i = 0; i < num; i++)
     {
@@ -682,7 +695,8 @@ void nu_pdma_sgtbls_free(nu_pdma_desc_t *ppsSgtbls, int num)
         ppsSgtbls[i] = NULL;
     }
 
-    rt_mutex_release(g_mutex_sg);
+    result = rt_mutex_release(g_mutex_sg);
+    RT_ASSERT(result == RT_EOK);
 }
 
 static rt_err_t nu_pdma_sgtbls_valid(nu_pdma_desc_t head)
@@ -697,7 +711,7 @@ static rt_err_t nu_pdma_sgtbls_valid(nu_pdma_desc_t head)
         {
             rt_kprintf("The distance is over %d between 0x%08x and 0x%08x. \n", NU_PDMA_SG_LIMITED_DISTANCE, PDMA->SCATBA, node);
             rt_kprintf("Please use nu_pdma_sgtbl_allocate to allocate valid sg-table.\n");
-            return RT_ERROR;
+            return -RT_ERROR;
         }
 
         node = (nu_pdma_desc_t)(node->NEXT + PDMA->SCATBA);
@@ -730,7 +744,7 @@ static void _nu_pdma_transfer(int i32ChannID, uint32_t u32Peripheral, nu_pdma_de
 
 rt_err_t nu_pdma_transfer(int i32ChannID, uint32_t u32DataWidth, uint32_t u32AddrSrc, uint32_t u32AddrDst, int32_t i32TransferCnt, uint32_t u32IdleTimeout_us)
 {
-    rt_err_t ret = RT_EINVAL;
+    rt_err_t ret = -RT_EINVAL;
 
     nu_pdma_periph_ctl_t *psPeriphCtl = NULL;
 
@@ -760,7 +774,7 @@ exit_nu_pdma_transfer:
 
 rt_err_t nu_pdma_sg_transfer(int i32ChannID, nu_pdma_desc_t head, uint32_t u32IdleTimeout_us)
 {
-    rt_err_t ret = RT_EINVAL;
+    rt_err_t ret = -RT_EINVAL;
     nu_pdma_periph_ctl_t *psPeriphCtl = NULL;
 
     if (!head)
@@ -870,6 +884,7 @@ static void nu_pdma_memfun_actor_init(void)
         if (-(RT_ERROR) != (nu_pdma_memfun_actor_arr[i].m_i32ChannID = nu_pdma_channel_allocate(PDMA_MEM)))
         {
             nu_pdma_memfun_actor_arr[i].m_psSemMemFun = rt_sem_create("memactor_sem", 0, RT_IPC_FLAG_FIFO);
+            RT_ASSERT(nu_pdma_memfun_actor_arr[i].m_psSemMemFun != RT_NULL);
         }
         else
             break;
@@ -878,16 +893,23 @@ static void nu_pdma_memfun_actor_init(void)
     {
         nu_pdma_memfun_actor_maxnum = i;
         nu_pdma_memfun_actor_mask = ~(((1 << i) - 1));
+
         nu_pdma_memfun_actor_pool_sem = rt_sem_create("mempool_sem", nu_pdma_memfun_actor_maxnum, RT_IPC_FLAG_FIFO);
-        nu_pdma_memfun_actor_pool_lock = rt_mutex_create("mempool_lock", RT_IPC_FLAG_FIFO);
+        RT_ASSERT(nu_pdma_memfun_actor_pool_sem != RT_NULL);
+
+        nu_pdma_memfun_actor_pool_lock = rt_mutex_create("mempool_lock", RT_IPC_FLAG_PRIO);
+        RT_ASSERT(nu_pdma_memfun_actor_pool_lock != RT_NULL);
     }
 }
 
 static void nu_pdma_memfun_cb(void *pvUserData, uint32_t u32Events)
 {
+    rt_err_t result;
     nu_pdma_memfun_actor_t psMemFunActor = (nu_pdma_memfun_actor_t)pvUserData;
+
     psMemFunActor->m_u32Result = u32Events;
-    rt_sem_release(psMemFunActor->m_psSemMemFun);
+    result = rt_sem_release(psMemFunActor->m_psSemMemFun);
+    RT_ASSERT(result == RT_EOK);
 }
 
 static int nu_pdma_memfun_employ(void)
@@ -897,7 +919,10 @@ static int nu_pdma_memfun_employ(void)
     /* Headhunter */
     if (nu_pdma_memfun_actor_pool_sem && (rt_sem_take(nu_pdma_memfun_actor_pool_sem, RT_WAITING_FOREVER) == RT_EOK))
     {
-        rt_mutex_take(nu_pdma_memfun_actor_pool_lock, RT_WAITING_FOREVER);
+        rt_err_t result;
+        result = rt_mutex_take(nu_pdma_memfun_actor_pool_lock, RT_WAITING_FOREVER);
+        RT_ASSERT(result == RT_EOK);
+
         /* Find the position of first '0' in nu_pdma_memfun_actor_mask. */
         idx = nu_cto(nu_pdma_memfun_actor_mask);
         if (idx != 32)
@@ -908,13 +933,14 @@ static int nu_pdma_memfun_employ(void)
         {
             idx = -1;
         }
-        rt_mutex_release(nu_pdma_memfun_actor_pool_lock);
+        result = rt_mutex_release(nu_pdma_memfun_actor_pool_lock);
+        RT_ASSERT(result == RT_EOK);
     }
 
     return idx;
 }
 
-static rt_size_t nu_pdma_memfun(void *dest, void *src, uint32_t u32DataWidth, unsigned int u32TransferCnt, nu_pdma_memctrl_t eMemCtl)
+static rt_ssize_t nu_pdma_memfun(void *dest, void *src, uint32_t u32DataWidth, unsigned int u32TransferCnt, nu_pdma_memctrl_t eMemCtl)
 {
     nu_pdma_memfun_actor_t psMemFunActor = NULL;
     int idx;
@@ -924,6 +950,8 @@ static rt_size_t nu_pdma_memfun(void *dest, void *src, uint32_t u32DataWidth, un
 
     while (1)
     {
+        rt_err_t result;
+
         /* Employ actor */
         if ((idx = nu_pdma_memfun_employ()) < 0)
             continue;
@@ -952,7 +980,8 @@ static rt_size_t nu_pdma_memfun(void *dest, void *src, uint32_t u32DataWidth, un
                              0);
 
             /* Wait it done. */
-            rt_sem_take(psMemFunActor->m_psSemMemFun, RT_WAITING_FOREVER);
+            result = rt_sem_take(psMemFunActor->m_psSemMemFun, RT_WAITING_FOREVER);
+            RT_ASSERT(result == RT_EOK);
 
             /* Give result if get NU_PDMA_EVENT_TRANSFER_DONE.*/
             if (psMemFunActor->m_u32Result & NU_PDMA_EVENT_TRANSFER_DONE)
@@ -972,16 +1001,20 @@ static rt_size_t nu_pdma_memfun(void *dest, void *src, uint32_t u32DataWidth, un
             }
 
             u32TransferCnt -= u32TxCnt;
-            u32Offset += u32TxCnt;
+            u32Offset += u32TxCnt * (u32DataWidth / 8);
         }
         while (u32TransferCnt > 0);
 
-        rt_mutex_take(nu_pdma_memfun_actor_pool_lock, RT_WAITING_FOREVER);
+        result = rt_mutex_take(nu_pdma_memfun_actor_pool_lock, RT_WAITING_FOREVER);
+        RT_ASSERT(result == RT_EOK);
+
         nu_pdma_memfun_actor_mask &= ~(1 << idx);
-        rt_mutex_release(nu_pdma_memfun_actor_pool_lock);
+        result = rt_mutex_release(nu_pdma_memfun_actor_pool_lock);
+        RT_ASSERT(result == RT_EOK);
 
         /* Fire actor */
-        rt_sem_release(nu_pdma_memfun_actor_pool_sem);
+        result = rt_sem_release(nu_pdma_memfun_actor_pool_sem);
+        RT_ASSERT(result == RT_EOK);
 
         break;
     }

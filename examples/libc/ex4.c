@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2006-2021, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ * Date           Author       Notes
+ */
 /* Making a library function that uses static variables thread-safe.
    Illustrates: thread-specific data, pthread_once(). */
 
@@ -50,7 +58,7 @@ char * str_accumulate(const char * s)
   accu = (char *) pthread_getspecific(str_key);
   /* It's initially NULL, meaning that we must allocate the buffer first. */
   if (accu == NULL) {
-    accu = malloc(1024);
+    accu = (char *)malloc(1024);
     if (accu == NULL) return NULL;
     accu[0] = 0;
     /* Store the buffer pointer in the thread-specific data. */

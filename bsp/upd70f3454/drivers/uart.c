@@ -1,11 +1,7 @@
 /*
- * File      : board.c
- * This file is part of RT-Thread RTOS
- * COPYRIGHT (C) 2009 - 2012 RT-Thread Develop Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
- * The license and distribution terms for this file may be
- * found in the file LICENSE in this distribution or at
- * http://www.rt-thread.org/license/LICENSE
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author           Notes
@@ -128,7 +124,7 @@ static rt_err_t rt_uart_close(rt_device_t dev)
     return RT_EOK;
 }
 
-static rt_size_t rt_uart_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
+static rt_ssize_t rt_uart_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
     rt_uint8_t *ptr;
     struct rt_uart_v850 *uart = (struct rt_uart_v850 *)dev;
@@ -175,7 +171,7 @@ static rt_size_t rt_uart_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_si
     return 0;
 }
 
-static rt_size_t rt_uart_write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size)
+static rt_ssize_t rt_uart_write(rt_device_t dev, rt_off_t pos, const void* buffer, rt_size_t size)
 {
     char *ptr;
     ptr = (char*)buffer;
@@ -196,7 +192,7 @@ static rt_size_t rt_uart_write(rt_device_t dev, rt_off_t pos, const void* buffer
             while (UA1TSF == 1U)
                 ;
             UA1TX = *ptr;
-  
+
             ptr ++;
             size --;
         }

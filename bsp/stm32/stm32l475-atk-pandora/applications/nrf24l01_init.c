@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -14,7 +14,7 @@
 #include "drv_spi.h"
 static int rt_hw_nrf24l01_init(void)
 {
-    rt_hw_spi_device_attach("spi2", "spi20", GPIOD, GPIO_PIN_5);
+    rt_hw_spi_device_attach("spi2", "spi20", GET_PIN(D, 5));
     return RT_EOK;
 }
 INIT_COMPONENT_EXPORT(rt_hw_nrf24l01_init);

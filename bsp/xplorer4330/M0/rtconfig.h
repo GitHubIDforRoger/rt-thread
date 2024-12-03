@@ -6,8 +6,8 @@
 
 // <integer name="RT_NAME_MAX" description="Maximal size of kernel object name length" default="6" />
 #define RT_NAME_MAX 8
-// <integer name="RT_ALIGN_SIZE" description="Alignment size for CPU architecture data access" default="4" />
-#define RT_ALIGN_SIZE   4
+// <integer name="RT_ALIGN_SIZE" description="Alignment size for CPU architecture data access" default="8" />
+#define RT_ALIGN_SIZE   8
 // <integer name="RT_THREAD_PRIORITY_MAX" description="Maximal level of thread priority" default="32">
 // <item description="8">8</item>
 // <item description="32">32</item>
@@ -39,8 +39,8 @@
 #define RT_TIMER_THREAD_PRIO    4
 // <integer name="RT_TIMER_THREAD_STACK_SIZE" description="The stack size of timer thread" default="512" />
 #define RT_TIMER_THREAD_STACK_SIZE  512
-// <integer name="RT_TIMER_TICK_PER_SECOND" description="The soft-timer tick per second" default="10" />
-#define RT_TIMER_TICK_PER_SECOND    100
+// <integer name="RT_TICK_PER_SECOND" description="The soft-timer tick per second" default="10" />
+#define RT_TICK_PER_SECOND    100
 // </section>
 
 // <section name="IPC" description="Inter-Thread communication" default="always" >
@@ -114,9 +114,6 @@
 //#define FINSH_USING_MSH
 // </section>
 
-// <section name="LIBC" description="C Runtime library setting" default="always" >
-// <bool name="RT_USING_NEWLIB" description="Using newlib library, only available under GNU GCC" default="true" />
-// #define RT_USING_NEWLIB
 // <bool name="RT_USING_PTHREADS" description="Using POSIX threads library" default="true" />
 //#define RT_USING_PTHREADS
 // </section>

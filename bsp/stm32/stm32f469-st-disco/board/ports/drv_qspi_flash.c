@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -8,7 +8,7 @@
  * 2018-11-27     zylx         first version
  * 2019-04-11     ZYH          port from stm32f7serial
  */
- 
+
 #include <board.h>
 #include <drv_qspi.h>
 #include <rtdevice.h>
@@ -17,8 +17,8 @@
 
 #ifdef BSP_USING_QSPI_FLASH
 
-#include "spi_flash.h"
-#include "spi_flash_sfud.h"
+#include "dev_spi_flash.h"
+#include "dev_spi_flash_sfud.h"
 
 char n25qxxa_read_status_register2(struct rt_qspi_device *device)
 {
@@ -63,8 +63,8 @@ void n25qxxa_enter_qspi_mode(struct rt_qspi_device *device)
 
 static int rt_hw_qspi_flash_with_sfud_init(void)
 {
-    stm32_qspi_bus_attach_device("qspi1", "qspi10", RT_NULL, 4, n25qxxa_enter_qspi_mode, RT_NULL);
-    
+    rt_hw_qspi_device_attach("qspi1", "qspi10", RT_NULL, 4, n25qxxa_enter_qspi_mode, RT_NULL);
+
     /* init n25qxx */
     if (RT_NULL == rt_sfud_flash_probe(FAL_USING_NOR_FLASH_DEV_NAME, "qspi10"))
     {

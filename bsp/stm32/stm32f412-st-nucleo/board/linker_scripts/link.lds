@@ -10,7 +10,7 @@ MEMORY
     RAM (rw) : ORIGIN = 0x20000000, LENGTH =  256k /* 256K sram */
 }
 ENTRY(Reset_Handler)
-_system_stack_size = 0x200;
+_system_stack_size = 0x400;
 
 SECTIONS
 {
@@ -40,6 +40,12 @@ SECTIONS
         KEEP(*(VSymTab))
         __vsymtab_end = .;
 
+        /* section information for utest */
+        . = ALIGN(4);
+        __rt_utest_tc_tab_start = .;
+        KEEP(*(UtestTcTab))
+        __rt_utest_tc_tab_end = .;
+
         /* section information for initial. */
         . = ALIGN(4);
         __rt_init_start = .;
@@ -47,6 +53,14 @@ SECTIONS
         __rt_init_end = .;
 
         . = ALIGN(4);
+
+        PROVIDE(__ctors_start__ = .);
+        KEEP (*(SORT(.init_array.*)))
+        KEEP (*(.init_array))
+        PROVIDE(__ctors_end__ = .);
+
+        . = ALIGN(4);
+
         _etext = .;
     } > ROM = 0
 
@@ -78,7 +92,7 @@ SECTIONS
         _edata = . ;
     } >RAM
 
-    .stack : 
+    .stack :
     {
         . = ALIGN(4);
         _sstack = .;
@@ -101,7 +115,7 @@ SECTIONS
         . = ALIGN(4);
         /* This is used by the startup in order to initialize the .bss secion */
         _ebss = . ;
-        
+
         *(.bss.init)
     } > RAM
     __bss_end = .;

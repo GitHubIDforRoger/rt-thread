@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -49,16 +49,6 @@ typedef struct
    uint32_t rdes2;
    uint32_t rdes3;
 } RxDmaDesc;
-
-enum {
-    PHY_LINK        = (1 << 0),
-    PHY_10M         = (1 << 1),
-    PHY_100M        = (1 << 2),
-    PHY_1000M       = (1 << 3),
-    PHY_FULL_DUPLEX = (1 << 4),
-    PHY_HALF_DUPLEX = (1 << 5)
-};
-
 
 #define RTL8211F_PHY_ADDR       1           /* PHY address */
 

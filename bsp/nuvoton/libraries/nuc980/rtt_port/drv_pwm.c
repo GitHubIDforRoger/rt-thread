@@ -234,7 +234,7 @@ uint32_t nu_pwm_config(uint32_t u32PwmBaseAddr, uint32_t u32ChannelNum, uint32_t
 static rt_err_t nu_pwm_set(struct rt_device_pwm *device, struct rt_pwm_configuration *config)
 {
     nu_pwm_t psNuPWM = (nu_pwm_t)device;
-    rt_err_t result = RT_EINVAL;
+    rt_err_t result = -RT_EINVAL;
     rt_uint32_t u32FreqInHz;   /* unit:Hz */
     rt_uint32_t u32PulseInHz;   /* unit:% */
 
@@ -300,43 +300,5 @@ int rt_hw_pwm_init(void)
 }
 
 INIT_DEVICE_EXPORT(rt_hw_pwm_init);
-
-#if defined(RT_USING_FINSH)
-
-#include <finsh.h>
-
-#ifdef FINSH_USING_MSH
-
-static int pwm_get(int argc, char **argv)
-{
-    int result = 0;
-    struct rt_device_pwm *device = RT_NULL;
-    struct rt_pwm_configuration configuration = {0};
-
-    if (argc != 3)
-    {
-        rt_kprintf("Usage: pwm_get pwm1 1\n");
-        result = -RT_ERROR;
-        goto _exit;
-    }
-
-    device = (struct rt_device_pwm *)rt_device_find(argv[1]);
-    if (!device)
-    {
-        result = -RT_EIO;
-        goto _exit;
-    }
-
-    configuration.channel = atoi(argv[2]);
-    result = rt_device_control(&device->parent, PWM_CMD_GET, &configuration);
-
-_exit:
-    return result;
-}
-
-MSH_CMD_EXPORT(pwm_get, pwm_get pwm1 1);
-
-#endif /* FINSH_USING_MSH */
-#endif /* RT_USING_FINSH */
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2019, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -11,9 +11,10 @@
 #ifndef __DRV_SPI_H__
 #define __DRV_SPI_H__
 
+#include <stdint.h>
 #include <rtdevice.h>
 #include <rthw.h>
-#include "drivers/spi.h"
+#include "drivers/dev_spi.h"
 
 rt_err_t rt_hw_spi_device_attach(const char *bus_name, const char *device_name, uint32_t portindex, uint32_t  cs_gpiobase, uint32_t cs_gpio_pin);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2020, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -13,7 +13,7 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
-#include <drivers/mmcsd_core.h>
+#include <drivers/dev_mmcsd_core.h>
 
 #include "board.h"
 #include "raspi4.h"
@@ -85,7 +85,7 @@ struct sdhci_t
     rt_uint32_t width;
     rt_uint32_t clock;
     rt_err_t removeable;
-    void * sdcard; 
+    void * sdcard;
 
     rt_err_t (*detect)(struct sdhci_t * sdhci);
     rt_err_t (*setwidth)(struct sdhci_t * sdhci, rt_uint32_t width);

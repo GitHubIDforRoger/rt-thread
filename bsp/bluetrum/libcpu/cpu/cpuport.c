@@ -41,9 +41,9 @@ rt_uint8_t *rt_hw_stack_init(void       *tentry,
     stk--;
     *stk = (rt_uint32_t)0x10003;         /* Start address */
     stk--;
-    *stk = (rt_uint32_t)tentry;			/* Start address */
+    *stk = (rt_uint32_t)tentry;         /* Start address */
     stk -= 22;
-    *stk = (rt_uint32_t)parameter;	    /* Register a0  parameter*/
+    *stk = (rt_uint32_t)parameter;      /* Register a0  parameter*/
     stk -= 6;
     *stk = (rt_uint32_t)tp;             /* Register thread pointer */
     stk --;
@@ -51,17 +51,4 @@ rt_uint8_t *rt_hw_stack_init(void       *tentry,
 
     /* return task's current stack address */
     return (rt_uint8_t *)stk;
-}
-
-/** shutdown CPU */
-void rt_hw_cpu_shutdown(void)
-{
-    rt_uint32_t level;
-    rt_kprintf("shutdown...\n");
-
-    level = rt_hw_interrupt_disable();
-    while (level)
-    {
-        RT_ASSERT(0);
-    }
 }

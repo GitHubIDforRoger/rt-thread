@@ -43,20 +43,18 @@ Nuvoton Technology provides industrial IoT development platform using NUC980DK61
 |LEDs |  | Supported |
 |Audio Codec | NAU8822, Supports MIC and earphone | Supported |
 |USB Device | VCOM + MStorage | Supported |
-|2xUSB Host | MStorage | Not ready |
-|SPI NAND flash | W25N01GVZE1G | Not ready |
+|2xUSB Host | MStorage | Supported |
+|SPI NAND flash | W25N01GVZE1G | Supported |
 |VCOM | For console | Ready.(Need to install VCOM driver) |
 
 ## 2. Supported compiler
-Support GCC, MDK4 and MDK5 IDE/compilers. More information of these compiler version as following:
-
+Support GCC and MDK IDE/compilers. More information of these compiler version as following:
 | IDE/Compiler  | Tested version            |
 | ---------- | ---------------------------- |
-| MDK4       | 4.76                         |
-| MDK5       | 5.26.2                       |
-| GCC        | GCC 5.4.1 20160919 (release) |
+| MDK        | uVision 5.25                 |
+| GCC        | 6-2017-q1-update             |
 
-Notice: Please install ICE driver for development.
+Notice: Please install ICE driver for development and [NuMicro_ARM9_Device_Database_Keil](https://www.nuvoton.com/resource-download.jsp?tp_GUID=SW1820201207155701).
 
 ## 3. Program firmware
 ### 3.1 SDRAM Downloading using NuWriter
@@ -84,6 +82,43 @@ Execute Address: 0x0<br>
 << Press Program >><br>
 << Press OK & Wait it down >><br>
 << Set Power-on setting to SPI NOR booting >><br>
+<< Press Reset button on board >><br>
+Enjoy!! <br>
+<br>
+
+### 3.3 SPI NAND flash using NuWriter
+You can use NuWriter to program rtthread.bin into SPI NAND flash.
+[![SPI NAND flash](https://i.imgur.com/p9LudBK.gif "SPI NAND flash")](https://i.imgur.com/p9LudBK.gif "SPI NAND flash using NuWriter")
+<br>
+Choose type: SPINAND<br>
+<< Press Re-Connect >><br>
+
+<< Press Erase >><br>
+<< Select Erase All >><br>
+<< Press OK >><br>
+
+Choose file: Specify your uboot-spl.bin file.<br>
+Image Type: Loader<br>
+Execute Address: 0x200<br>
+<< Press Program >><br>
+
+Choose file: Specify your uboot.bin file.<br>
+Image Type: Data<br>
+Image start address: 0x100000<br>
+<< Press Program >><br>
+
+Choose file: Specify your rtthread.bin file.<br>
+Image Type: Data<br>
+Image start address: 0x200000<br>
+<< Press Program >><br>
+
+Choose file: Specify your env.txt file.<br>
+Image Type: Environment<br>
+Image start address: 0x80000<br>
+<< Press Program >><br>
+
+<< Press OK & Wait it down >><br>
+<< Set Power-on setting to SPI NAND booting >><br>
 << Press Reset button on board >><br>
 Enjoy!! <br>
 <br>

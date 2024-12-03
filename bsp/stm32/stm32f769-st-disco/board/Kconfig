@@ -1,12 +1,5 @@
 menu "Hardware Drivers Config"
 
-config SOC_STM32F769NI
-    bool
-    select SOC_SERIES_STM32F7
-    select RT_USING_COMPONENTS_INIT
-    select RT_USING_USER_MAIN
-    default y
-
 menu "Onboard Peripheral Drivers"
 
     config BSP_USING_ETH
@@ -53,12 +46,12 @@ menu "On-chip Peripheral Drivers"
                 bool "Enable UART1 RX DMA"
                 depends on BSP_USING_UART1 && RT_SERIAL_USING_DMA
                 default n
-                
+
             config BSP_UART1_TX_USING_DMA
                 bool "Enable UART1 TX DMA"
                 depends on BSP_USING_UART1 && RT_SERIAL_USING_DMA
                 default n
-                
+
             config BSP_USING_UART5
                 bool "Enable UART5"
                 default n
@@ -67,19 +60,19 @@ menu "On-chip Peripheral Drivers"
                 bool "Enable UART5 RX DMA"
                 depends on BSP_USING_UART5 && RT_SERIAL_USING_DMA
                 default n
-                
+
             config BSP_UART5_TX_USING_DMA
                 bool "Enable UART5 TX DMA"
                 depends on BSP_USING_UART5 && RT_SERIAL_USING_DMA
                 default n
         endif
 
-    source "../libraries/HAL_Drivers/Kconfig"
-    
+    source "$(BSP_DIR)/../libraries/HAL_Drivers/drivers/Kconfig"
+
 endmenu
 
 menu "Board extended module Drivers"
 
 endmenu
- 
+
 endmenu

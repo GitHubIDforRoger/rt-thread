@@ -1,12 +1,5 @@
 menu "Hardware Drivers Config"
 
-config SOC_STM32L433RC
-    bool
-    select SOC_SERIES_STM32L4
-    select RT_USING_COMPONENTS_INIT
-    select RT_USING_USER_MAIN
-    default y
-
 menu "Onboard Peripheral Drivers"
 
 endmenu
@@ -55,7 +48,7 @@ menu "On-chip Peripheral Drivers"
                 bool "Enable SPI1 TX DMA"
                 depends on BSP_USING_SPI1
                 default n
-                
+
             config BSP_SPI1_RX_USING_DMA
                 bool "Enable SPI1 RX DMA"
                 depends on BSP_USING_SPI1
@@ -70,7 +63,6 @@ menu "On-chip Peripheral Drivers"
     menuconfig BSP_USING_ONCHIP_RTC
         bool "Enable RTC"
         select RT_USING_RTC
-        select RT_USING_LIBC
         default n
         if BSP_USING_ONCHIP_RTC
             choice
@@ -85,7 +77,7 @@ menu "On-chip Peripheral Drivers"
             endchoice
         endif
 
-    source "../libraries/HAL_Drivers/Kconfig"
+    source "$(BSP_DIR)/../libraries/HAL_Drivers/drivers/Kconfig"
 
 endmenu
 

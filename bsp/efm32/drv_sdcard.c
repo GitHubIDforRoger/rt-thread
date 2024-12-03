@@ -1,24 +1,17 @@
-/***************************************************************************//**
- * @file    drv_sdcard.c
- * @brief   Memory card driver (SPI mode) of RT-Thread RTOS for using EFM32
- *  USART module
- *  COPYRIGHT (C) 2012, RT-Thread Development Team
- * @author  onelife
- * @version 1.0
- *******************************************************************************
- * @section License
- * The license and distribution terms for this file may be found in the file
- *  LICENSE in this distribution or at http://www.rt-thread.org/license/LICENSE
- *******************************************************************************
- * @section Change Logs
+/*
+ * Copyright (c) 2006-2022, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
  * Date         Author      Notes
  * 2011-05-13   onelife     Initial creation for using EFM32 USART module
  * 2011-07-07   onelife     Modify initialization function to return error code
  * 2011-12-08   onelife     Add giant gecko development kit support
  * 2011-12-15   onelife     Move MicroSD enabling routine to driver
- *  initialization function (board.c)
+ *                            initialization function (board.c)
  * 2011-12-21   onelife     Modify code due to SPI write format changed
- ******************************************************************************/
+ */
 
 /***************************************************************************//**
  * @addtogroup efm32_dk
@@ -143,7 +136,7 @@ static void efm_spiSd_speed(rt_uint8_t level)
  * @return
  *   Number of read bytes
  ******************************************************************************/
-static rt_size_t efm_spiSd_read(void *buffer, rt_size_t size)
+static rt_ssize_t efm_spiSd_read(void *buffer, rt_size_t size)
 {
     RT_ASSERT(spi != RT_NULL);
 
@@ -452,7 +445,7 @@ static rt_err_t efm_spiSd_writeBlock(void *buffer, rt_uint8_t token)
     rt_uint8_t buf_res[8];      /* Expect a byte for data response */
     rt_uint8_t i;
 
-    ret = RT_ERROR;
+    ret = -RT_ERROR;
     sdcard_debug("SPISD: Write block\n");
     do
     {
@@ -814,7 +807,7 @@ static rt_err_t rt_spiSd_close(rt_device_t dev)
  * @return
  *   Number of read sectors
  ******************************************************************************/
-static rt_size_t rt_spiSd_read(
+static rt_ssize_t rt_spiSd_read(
     rt_device_t     dev,
     rt_off_t        sector,
     void            *buffer,
@@ -904,7 +897,7 @@ static rt_size_t rt_spiSd_read(
  * @return
  *   Number of written sectors
  ******************************************************************************/
-static rt_size_t rt_spiSd_write (
+static rt_ssize_t rt_spiSd_write (
     rt_device_t     dev,
     rt_off_t        sector,
     const void      *buffer,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2020, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -9,6 +9,7 @@
  */
 #include "drv_dma.h"
 #include "raspi4.h"
+#include <rtthread.h>
 
 volatile unsigned int __attribute__((aligned(256))) dma_disc[32];
 //https://www.raspberrypi.org/forums/viewtopic.php?f=72&t=10276
@@ -93,7 +94,7 @@ rt_err_t dma_memcpy(void *src, void *dst, unsigned int size, unsigned int dch, u
     if(rt_sem_take(&dma_sem, timeout) != RT_EOK)
     {
         rt_kprintf("dma transfer timeout!\n");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     return RT_EOK;

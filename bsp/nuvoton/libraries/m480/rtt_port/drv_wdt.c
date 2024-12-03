@@ -16,7 +16,7 @@
 #include <rthw.h>
 #include <rtdevice.h>
 #include <rtdbg.h>
-#include <NuMicro.h>
+#include "NuMicro.h"
 
 /*-------------------------------------------------------------------------------*/
 /* watchdog timer timeout look up table                                          */
@@ -98,9 +98,9 @@ static void soft_time_setup(uint32_t wanted_sec, uint32_t hz, soft_time_handle_t
 static void soft_time_feed_dog(soft_time_handle_t *const soft_time);
 
 #if defined(RT_USING_PM)
-    static int wdt_pm_suspend(const struct rt_device *device, rt_uint8_t mode);
+    static rt_err_t wdt_pm_suspend(const struct rt_device *device, rt_uint8_t mode);
     static void wdt_pm_resume(const struct rt_device *device, rt_uint8_t mode);
-    static int wdt_pm_frequency_change(const struct rt_device *device, rt_uint8_t mode);
+    static rt_err_t wdt_pm_frequency_change(const struct rt_device *device, rt_uint8_t mode);
     static void soft_time_freqeucy_change(uint32_t new_hz, soft_time_handle_t *const soft_time);
 #endif
 
@@ -129,7 +129,7 @@ static struct rt_device_pm_ops device_pm_ops =
 #if defined(RT_USING_PM)
 
 /* device pm suspend() entry. */
-static int wdt_pm_suspend(const struct rt_device *device, rt_uint8_t mode)
+static rt_err_t wdt_pm_suspend(const struct rt_device *device, rt_uint8_t mode)
 {
     switch (mode)
     {
@@ -181,7 +181,7 @@ static void wdt_pm_resume(const struct rt_device *device, rt_uint8_t mode)
 
 
 /* device pm frequency_change() entry. */
-static int wdt_pm_frequency_change(const struct rt_device *device, rt_uint8_t mode)
+static rt_err_t wdt_pm_frequency_change(const struct rt_device *device, rt_uint8_t mode)
 {
     uint32_t clk, new_hz;
 
@@ -367,7 +367,7 @@ static rt_err_t wdt_control(rt_watchdog_t *dev, int cmd, void *args)
 
         if (args == RT_NULL)
         {
-            ret = RT_EINVAL;
+            ret = -RT_EINVAL;
             break;
         }
 
@@ -381,7 +381,7 @@ static rt_err_t wdt_control(rt_watchdog_t *dev, int cmd, void *args)
 
         if (wanted_sec == 0)
         {
-            ret = RT_EINVAL;
+            ret = -RT_EINVAL;
             break;
         }
 
@@ -392,7 +392,7 @@ static rt_err_t wdt_control(rt_watchdog_t *dev, int cmd, void *args)
 
         if (args == RT_NULL)
         {
-            ret = RT_EINVAL;
+            ret = -RT_EINVAL;
             break;
         }
 
@@ -419,7 +419,7 @@ static rt_err_t wdt_control(rt_watchdog_t *dev, int cmd, void *args)
         break;
 
     default:
-        ret = RT_ERROR;
+        ret = -RT_ERROR;
     }
 
     SYS_LockReg();

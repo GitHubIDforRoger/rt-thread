@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2022, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -12,7 +12,11 @@
 
 #if defined(BSP_USING_OV2640)
 
-#include <dfs_posix.h>
+#include <dfs_file.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/statfs.h>
 #include <drv_ov2640.h>
 #include <drv_dcmi.h>
 #include "pcf8574.h"
@@ -38,7 +42,7 @@ struct rt_i2c_bus_device *i2c_bus  = RT_NULL;
 #define JPEG_LINE_SIZE  1 * 1024
 
 static pcf8574_device_t pcf_dev = RT_NULL;
-   
+
 static rt_uint32_t *jpeg_data_buf = RT_NULL;
 static rt_uint32_t JPEG_LINE0_BUF[JPEG_LINE_SIZE];
 static rt_uint32_t JPEG_LINE1_BUF[JPEG_LINE_SIZE];
@@ -100,7 +104,7 @@ static rt_err_t read_reg(struct rt_i2c_bus_device *bus, rt_uint8_t reg, rt_uint8
         return RT_EOK;
     }
 
-    return RT_ERROR;
+    return -RT_ERROR;
 }
 
 /* i2c write reg */
@@ -124,7 +128,7 @@ static rt_err_t write_reg(struct rt_i2c_bus_device *bus, rt_uint8_t reg, rt_uint
         return RT_EOK;
     }
 
-    return RT_ERROR;
+    return -RT_ERROR;
 }
 
 static rt_err_t ov2640_read_id(struct rt_i2c_bus_device *bus)
@@ -139,7 +143,7 @@ static rt_err_t ov2640_read_id(struct rt_i2c_bus_device *bus)
     if (id != OV2640_MID)
     {
         LOG_E("ov2640 init error, mid: 0x%04x", id);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     LOG_I("ov2640 read mid success, mid: 0x%04x", id);
@@ -152,7 +156,7 @@ static rt_err_t ov2640_read_id(struct rt_i2c_bus_device *bus)
     if (id != OV2640_PID)
     {
         LOG_E("ov2640 init error, pid: 0x%04x", id);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     LOG_I("ov2640 read hid success, pid: 0x%04x", id);
@@ -434,30 +438,30 @@ rt_uint8_t ov2640_set_image_out_size(rt_uint16_t width,rt_uint16_t height)
 }
 
 /* set the image window size */
-rt_uint8_t ov2640_set_image_window_size(rt_uint16_t offx, rt_uint16_t offy, rt_uint16_t width, rt_uint16_t height)
+rt_err_t ov2640_set_image_window_size(rt_uint16_t offx, rt_uint16_t offy, rt_uint16_t width, rt_uint16_t height)
 {
     rt_uint16_t hsize, vsize;
     rt_uint8_t temp;
     if ((width % 4) || (height%4))
     {
-        return RT_ERROR;
+        return -RT_ERROR;
     }
     hsize = width / 4;
     vsize = height / 4;
-   write_reg(i2c_bus, 0XFF,0X00);
-   write_reg(i2c_bus, 0XE0,0X04);
-   write_reg(i2c_bus, 0X51,hsize&0XFF);
-   write_reg(i2c_bus, 0X52,vsize&0XFF);
-   write_reg(i2c_bus, 0X53,offx&0XFF);
-   write_reg(i2c_bus, 0X54,offy&0XFF);
-   temp=(vsize>>1)&0X80;
-   temp|=(offy>>4)&0X70;
-   temp|=(hsize>>5)&0X08;
-   temp|=(offx>>8)&0X07;
-   write_reg(i2c_bus, 0X55,temp); 
-   write_reg(i2c_bus, 0X57,(hsize>>2)&0X80);
-   write_reg(i2c_bus, 0XE0,0X00);
-   return 0;
+    write_reg(i2c_bus, 0XFF,0X00);
+    write_reg(i2c_bus, 0XE0,0X04);
+    write_reg(i2c_bus, 0X51,hsize&0XFF);
+    write_reg(i2c_bus, 0X52,vsize&0XFF);
+    write_reg(i2c_bus, 0X53,offx&0XFF);
+    write_reg(i2c_bus, 0X54,offy&0XFF);
+    temp=(vsize>>1)&0X80;
+    temp|=(offy>>4)&0X70;
+    temp|=(hsize>>5)&0X08;
+    temp|=(offx>>8)&0X07;
+    write_reg(i2c_bus, 0X55,temp);
+    write_reg(i2c_bus, 0X57,(hsize>>2)&0X80);
+    write_reg(i2c_bus, 0XE0,0X00);
+    return RT_EOK;
 }
 
 /* set output resolution */
@@ -550,36 +554,36 @@ int ov2640_pwdn_set(rt_uint8_t sta)
         return -1;
     }
     pcf8574_pin_write(pcf_dev, DCMI_PWDN_IO, sta);
-    
+
     return 0;
 }
 
 void sw_ov2640_mode(void)
-{  
+{
     GPIO_InitTypeDef GPIO_Initure = {0};
-    
+
     ov2640_pwdn_set(0);
-    
-    GPIO_Initure.Pin       = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_11;  
-    GPIO_Initure.Mode      = GPIO_MODE_AF_PP; 
-    GPIO_Initure.Pull      = GPIO_PULLUP;     
-    GPIO_Initure.Speed     = GPIO_SPEED_HIGH; 
-    GPIO_Initure.Alternate = GPIO_AF13_DCMI;    
-    HAL_GPIO_Init(GPIOC,&GPIO_Initure);  
-} 
+
+    GPIO_Initure.Pin       = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_11;
+    GPIO_Initure.Mode      = GPIO_MODE_AF_PP;
+    GPIO_Initure.Pull      = GPIO_PULLUP;
+    GPIO_Initure.Speed     = GPIO_SPEED_HIGH;
+    GPIO_Initure.Alternate = GPIO_AF13_DCMI;
+    HAL_GPIO_Init(GPIOC,&GPIO_Initure);
+}
 
 void sw_sdcard_mode(void)
 {
     GPIO_InitTypeDef GPIO_Initure = {0};
-    
-    ov2640_pwdn_set(1); /* OV2640 Power Down */ 
 
-    GPIO_Initure.Pin       = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_11;  
-    GPIO_Initure.Mode      = GPIO_MODE_AF_PP; 
+    ov2640_pwdn_set(1); /* OV2640 Power Down */
+
+    GPIO_Initure.Pin       = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_11;
+    GPIO_Initure.Mode      = GPIO_MODE_AF_PP;
     GPIO_Initure.Pull      = GPIO_PULLUP;
-    GPIO_Initure.Speed     = GPIO_SPEED_HIGH; 
-    GPIO_Initure.Alternate = GPIO_AF12_SDMMC1;   
-    HAL_GPIO_Init(GPIOC, &GPIO_Initure);   
+    GPIO_Initure.Speed     = GPIO_SPEED_HIGH;
+    GPIO_Initure.Alternate = GPIO_AF12_SDMMC1;
+    HAL_GPIO_Init(GPIOC, &GPIO_Initure);
 }
 
 int rt_ov2640_init(void)
@@ -587,7 +591,7 @@ int rt_ov2640_init(void)
     rt_uint16_t i = 0;
     rt_err_t result = RT_EOK;
     rt_device_t dcmi_dev = RT_NULL;
-    
+
     sw_ov2640_mode();
     pcf_dev = pcf8574_init("i2c1", RT_NULL);
     if (pcf_dev == RT_NULL)
@@ -595,36 +599,36 @@ int rt_ov2640_init(void)
         LOG_E("can't find pcf8574, please check it");
         return -RT_ERROR;
     }
-    
+
     ov2640_pwdn_set(0);
-	rt_thread_delay(20);
-    
+    rt_thread_delay(20);
+
     /* ov2640 hard reset */
     rt_pin_mode(RESET_PIN, PIN_MODE_OUTPUT);
     rt_pin_write(RESET_PIN, PIN_LOW);
     rt_thread_delay(20);
     rt_pin_write(RESET_PIN, PIN_HIGH);
     rt_thread_delay(20);
-    
+
     i2c_bus = rt_i2c_bus_device_find(I2C_NAME);
     if (i2c_bus == RT_NULL)
     {
         LOG_E("can't find %s deivce", I2C_NAME);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
     /* Prepare the camera to be configured */
     result = write_reg(i2c_bus, OV2640_DSP_RA_DLMT, 0x01);
     if (result != RT_EOK )
     {
         LOG_E("ov2640 write reg error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
     rt_thread_delay(10);
     result = write_reg(i2c_bus, OV2640_SENSOR_COM7, 0x80);
     if (result != RT_EOK)
     {
         LOG_E("ov2640 soft reset error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
     rt_thread_delay(20);
 
@@ -632,7 +636,7 @@ int rt_ov2640_init(void)
     if (result != RT_EOK )
     {
         LOG_E("ov2640 read id error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     for (i = 0; i < sizeof(ov2640_svga_init_reg_tbl) / 2; i++)
@@ -653,7 +657,7 @@ int rt_ov2640_init(void)
     if (dcmi_dev == RT_NULL)
     {
         LOG_E("can't find dcmi device!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
     rt_device_open(dcmi_dev, RT_DEVICE_FLAG_RDWR);
 
@@ -661,7 +665,7 @@ int rt_ov2640_init(void)
    if (RT_NULL == jpeg_data_buf)
    {
        rt_kprintf("jpeg data buf malloc error!\n");
-       return RT_ERROR;
+       return -RT_ERROR;
    }
 
     /* start dcmi capture */
@@ -687,7 +691,7 @@ int camera_sample(int argc, char **argv)
        rt_kprintf("camera_sample file.jpg\n");
        return -1;
    }
-   
+
    sw_ov2640_mode();
    DCMI_Start();
 

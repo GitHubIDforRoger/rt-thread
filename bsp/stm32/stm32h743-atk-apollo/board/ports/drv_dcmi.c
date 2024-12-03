@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2022, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -83,7 +83,7 @@ static rt_err_t rt_hw_dcmi_init(DCMI_HandleTypeDef *device)
     if (HAL_DCMI_Init(device) != HAL_OK)
     {
         LOG_E("dcmi init error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     DCMI->IER = 0x0;
@@ -187,14 +187,14 @@ static rt_err_t rt_dcmi_control(rt_device_t dev, int cmd, void *args)
     return RT_EOK;
 }
 
-static rt_size_t rt_dcmi_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
+static rt_ssize_t rt_dcmi_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
     RT_ASSERT(dev != RT_NULL);
 
     return RT_EOK;
 }
 
-static rt_size_t rt_dcmi_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
+static rt_ssize_t rt_dcmi_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
     RT_ASSERT(dev != RT_NULL);
 

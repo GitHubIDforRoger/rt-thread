@@ -1,11 +1,7 @@
 /*
- * File      : sdcard.c
- * This file is part of RT-Thread RTOS
- * COPYRIGHT (C) 2007 - 2012, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
- * The license and distribution terms for this file may be
- * found in the file LICENSE in this distribution or at
- * http://www.rt-thread.org/license/LICENSE
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author      Notes
@@ -62,7 +58,7 @@ static void delay(U32 j)
 
     for (i = 0; i < j; i++)
     {
-    	/* nothing */
+        /* nothing */
     }
 }
 
@@ -105,7 +101,7 @@ static rt_err_t cmd_data(U16 cmd, U32 arg, U16 mode, U16 blk_len, U16 num, U16 m
         if (!to)
         {
             EOUT("%s TIMEOUT\n", __FUNCTION__);
-            return RT_ETIMEOUT;
+            return -RT_ETIMEOUT;
         }
 #endif
     }
@@ -145,7 +141,7 @@ static rt_err_t cmd_response(U16 Cmd, U32 Arg, U16 TransMode, U16 BlkLen, U16 No
         if (!to)
         {
             EOUT("%s Timeout\n", __FUNCTION__);
-            return RT_ETIMEOUT;
+            return -RT_ETIMEOUT;
         }
 #endif
     }
@@ -183,7 +179,7 @@ static rt_err_t cmd_wait(U16 Cmd, U32 Arg, U16 IntMask)
         if (!to)
         {
             EOUT("%s Timeout\n", __FUNCTION__);
-            return RT_ETIMEOUT;
+            return -RT_ETIMEOUT;
         }
 #endif
 
@@ -225,7 +221,7 @@ static rt_err_t sd_init(void)
         if (err != RT_EOK)
         {
             EOUT("cmd_wait err in %s\n", __FUNCTION__);
-            return RT_ETIMEOUT;
+            return -RT_ETIMEOUT;
         }
 #endif
 
@@ -234,14 +230,14 @@ static rt_err_t sd_init(void)
         if (err != RT_EOK)
         {
             EOUT("cmd_wait err in %s\n", __FUNCTION__);
-            return RT_ETIMEOUT;
+            return -RT_ETIMEOUT;
         }
 #ifdef USE_TIMEOUT
         to--;
         if (!to)
         {
             EOUT("%s timeout\n", __FUNCTION__);
-            return RT_ETIMEOUT;
+            return -RT_ETIMEOUT;
         }
 #endif
 
@@ -267,10 +263,12 @@ static rt_err_t sd_readblock(rt_uint32_t address, rt_uint8_t *buf)
     U32 complete, i;
     rt_uint8_t temp;
     rt_err_t err;
-    RT_UNUSED rt_uint32_t discard;
+    rt_uint32_t discard;
 #ifdef USE_TIMEOUT
     rt_uint32_t to = 10;
 #endif
+
+    RT_UNUSED(discard);
 
     //rt_kprintf("in readblock:%x\n",address);
     //Clear all the errors & interrups
@@ -327,7 +325,7 @@ static rt_err_t sd_readblock(rt_uint32_t address, rt_uint8_t *buf)
         if (!to)
         {
             EOUT("%s TIMEOUT\n", __FUNCTION__);
-            return RT_ETIMEOUT;
+            return -RT_ETIMEOUT;
         }
 #endif
     }
@@ -526,7 +524,7 @@ static rt_err_t rt_sdcard_control(rt_device_t dev, int cmd, void *args)
  *
  * @param hook the hook function
  */
-static rt_size_t rt_sdcard_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
+static rt_ssize_t rt_sdcard_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
     rt_uint32_t retry = 3;
     rt_uint8_t  status;
@@ -584,7 +582,7 @@ static rt_size_t rt_sdcard_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_
  *
  * @param hook the hook function
  */
-static rt_size_t rt_sdcard_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
+static rt_ssize_t rt_sdcard_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
     int i;
     rt_uint8_t status;
@@ -664,7 +662,7 @@ rt_err_t rt_hw_sdcard_init()
     if (ptr_sddev == RT_NULL)
     {
         EOUT("Failed to allocate sdcard device structure\n");
-        return RT_ENOMEM;
+        return -RT_ENOMEM;
     }
 
     /*sdcard intialize*/
@@ -691,7 +689,7 @@ rt_err_t rt_hw_sdcard_init()
     if (ptr_sddev->part == RT_NULL)
     {
         EOUT("allocate partition failed\n");
-        err =  RT_ENOMEM;
+        err =  -RT_ENOMEM;
         goto FAIL2;
     }
 
@@ -700,7 +698,7 @@ rt_err_t rt_hw_sdcard_init()
     if (ptr_sddev->device == RT_NULL)
     {
         EOUT("allocate device failed\n");
-        err = RT_ENOMEM;
+        err = -RT_ENOMEM;
         goto FAIL1;
     }
 

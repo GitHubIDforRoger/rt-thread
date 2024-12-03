@@ -1,11 +1,7 @@
 /*
- * File      : sst25vfxx_mtd.h
- * This file is part of RT-Thread RTOS
- * COPYRIGHT (C) 2006 - 2011, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
- * The license and distribution terms for this file may be
- * found in the file LICENSE in this distribution or at
- * http://www.rt-thread.org/license/LICENSE
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
@@ -17,7 +13,7 @@
 #define SST25VFXX_MTD_H
 
 #include <rtthread.h>
-#include <drivers/spi.h>
+#include "drivers/dev_spi.h"
 
 rt_err_t sst25vfxx_mtd_init(const char *spi_device_name, rt_uint32_t block_start, rt_uint32_t block_end);
 

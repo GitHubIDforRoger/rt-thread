@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2019, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -7,7 +7,7 @@
  * Date           Author       Notes
  * 2018/5/3       Bernard      first version
  * 2019-07-28     zdzn         add smp support
- * 2019-08-09     zhangjun     fixup the problem of smp startup and scheduling issues, 
+ * 2019-08-09     zhangjun     fixup the problem of smp startup and scheduling issues,
  *                             write addr to mailbox3 to startup smp, and we use mailbox0 for ipi
  */
 
@@ -22,7 +22,7 @@
 #ifdef RT_USING_SMP
 #define rt_interrupt_nest rt_cpu_self()->irq_nest
 #else
-extern volatile rt_uint8_t rt_interrupt_nest;
+extern volatile rt_atomic_t rt_interrupt_nest;
 #endif
 
 const unsigned int VECTOR_BASE = 0x00;
@@ -66,7 +66,7 @@ void rt_hw_interrupt_init(void)
     for (index = 0; index < MAX_HANDLERS; index ++)
     {
         isr_table[index].handler = default_isr_handler;
-        isr_table[index].param = NULL;
+        isr_table[index].param = RT_NULL;
 #ifdef RT_USING_INTERRUPT_INFO
         rt_strncpy(isr_table[index].name, "unknown", RT_NAME_MAX);
         isr_table[index].counter = 0;
@@ -163,15 +163,15 @@ void rt_hw_ipi_send(int ipi_vector, unsigned int cpu_mask)
     }
     if (cpu_mask & 0x2)
     {
-    	send_ipi_msg(1, ipi_vector);
+        send_ipi_msg(1, ipi_vector);
     }
     if (cpu_mask & 0x4)
     {
-    	send_ipi_msg(2, ipi_vector);
+        send_ipi_msg(2, ipi_vector);
     }
     if (cpu_mask & 0x8)
     {
-    	send_ipi_msg(3, ipi_vector);
+        send_ipi_msg(3, ipi_vector);
     }
     __DSB();
 }

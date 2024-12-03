@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2019, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -9,10 +9,6 @@
  */
 
 #include "drv_i2c.h"
-
-//Maybe redefined
-typedef unsigned long                   rt_ubase_t;
-typedef rt_ubase_t                      rt_size_t;
 
 rt_uint8_t i2c_read_or_write(volatile rt_uint32_t base, rt_uint8_t* buf, rt_uint32_t len, rt_uint8_t flag)
 {
@@ -107,18 +103,18 @@ struct raspi_i2c_hw_config
 
 #if (defined(BSP_USING_I2C0) || defined(BSP_USING_I2C1))
 
-static rt_size_t raspi_i2c_mst_xfer(struct rt_i2c_bus_device *bus,
+static rt_ssize_t raspi_i2c_mst_xfer(struct rt_i2c_bus_device *bus,
                                     struct rt_i2c_msg msgs[],
                                     rt_uint32_t num);
-static rt_size_t raspi_i2c_slv_xfer(struct rt_i2c_bus_device *bus,
+static rt_ssize_t raspi_i2c_slv_xfer(struct rt_i2c_bus_device *bus,
                                     struct rt_i2c_msg msgs[],
                                     rt_uint32_t num);
 static rt_err_t raspi_i2c_bus_control(struct rt_i2c_bus_device *bus,
-                                      rt_uint32_t,
-                                      rt_uint32_t);
+                                      int cmd,
+                                      void *args);
 
 static rt_uint32_t i2c_byte_wait_us = 0;
-static rt_size_t raspi_i2c_mst_xfer(struct rt_i2c_bus_device *bus,
+static rt_ssize_t raspi_i2c_mst_xfer(struct rt_i2c_bus_device *bus,
                                     struct rt_i2c_msg msgs[],
                                     rt_uint32_t num)
 {
@@ -128,7 +124,7 @@ static rt_size_t raspi_i2c_mst_xfer(struct rt_i2c_bus_device *bus,
 
     volatile rt_uint32_t base = (volatile rt_uint32_t)(bus->parent.user_data);
 
-    if (bus->addr == 0)
+    if (bus->parent.user_data == 0)
         base = BCM283X_BSC0_BASE;
     else
         base = BCM283X_BSC1_BASE;
@@ -145,15 +141,15 @@ static rt_size_t raspi_i2c_mst_xfer(struct rt_i2c_bus_device *bus,
     return (reason == 0)? i : 0;
 }
 
-static rt_size_t raspi_i2c_slv_xfer(struct rt_i2c_bus_device *bus,
+static rt_ssize_t raspi_i2c_slv_xfer(struct rt_i2c_bus_device *bus,
                                     struct rt_i2c_msg msgs[],
                                     rt_uint32_t num)
 {
     return 0;
 }
 static rt_err_t raspi_i2c_bus_control(struct rt_i2c_bus_device *bus,
-                                      rt_uint32_t cmd,
-                                      rt_uint32_t arg)
+                                      int cmd,
+                                      void *args)
 {
     return RT_EOK;
 }
@@ -198,7 +194,6 @@ static struct raspi_i2c_hw_config hw_device0 =
 struct rt_i2c_bus_device device0 =
 {
     .ops = &raspi_i2c_ops,
-    .addr = 0,
 };
 
 #endif
@@ -216,7 +211,6 @@ static struct raspi_i2c_hw_config hw_device1 =
 struct rt_i2c_bus_device device1 =
 {
     .ops = &raspi_i2c_ops,
-    .addr = 1,
 };
 
 #endif
@@ -224,11 +218,13 @@ struct rt_i2c_bus_device device1 =
 int rt_hw_i2c_init(void)
 {
 #if defined(BSP_USING_I2C0)
+    device0.parent.user_data = (void *)0;
     raspi_i2c_configure(&hw_device0);
     rt_i2c_bus_device_register(&device0, I2C0_BUS_NAME);
 #endif
 
 #if defined(BSP_USING_I2C1)
+    device1.parent.user_data = (void *)1;
     raspi_i2c_configure(&hw_device1);
     rt_i2c_bus_device_register(&device1, I2C1_BUS_NAME);
 #endif

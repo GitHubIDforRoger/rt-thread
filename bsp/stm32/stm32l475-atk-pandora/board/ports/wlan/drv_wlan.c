@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -10,9 +10,9 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
-#include <wlan_mgnt.h>
-#include <wlan_prot.h>
-#include <wlan_cfg.h>
+#include <dev_wlan_mgnt.h>
+#include <dev_wlan_prot.h>
+#include <dev_wlan_cfg.h>
 #include <fal.h>
 
 #include "drv_wlan.h"
@@ -35,7 +35,6 @@
 extern int wifi_hw_init(void);
 extern void wwd_thread_notify_irq(void);
 
-static const struct fal_partition *partition = RT_NULL;
 static rt_uint32_t init_flag = 0;
 
 struct rt_wlan_device *bcm_hw_wlan_dev_alloc(void)

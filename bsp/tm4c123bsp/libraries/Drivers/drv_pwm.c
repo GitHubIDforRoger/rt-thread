@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2019, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -231,7 +231,7 @@ static rt_err_t tm4c123_pwm_control(struct rt_device_pwm *device, int cmd, void 
     case PWM_CMD_GET:
         return drv_pwm_get(device->parent.parent.name, configuration);
     default:
-        return RT_EINVAL;
+        return -RT_EINVAL;
     }
 }
 

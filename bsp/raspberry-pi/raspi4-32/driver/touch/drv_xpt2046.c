@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2020, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -10,7 +10,6 @@
 
 #include <rtthread.h>
 #include <rtdevice.h>
-#include <touch.h>
 
 #include "drv_xpt2046.h"
 //http://www.lcdwiki.com/MHS-3.5inch_RPi_Display
@@ -19,7 +18,7 @@
 #define DBG_LVL DBG_INFO
 #include <rtdbg.h>
 
-//XPT2049
+//XPT2046
 #define     READ_X                (0xD0)
 #define     READ_Y                (0x90)
 
@@ -104,7 +103,7 @@ no pressed:(0x800,0xfff)
 ------------------------------------
 */
 #define XMIN 0x800
-#define YMAX 0xfff 
+#define YMAX 0xfff
 void read_tp(void *dev, rt_uint16_t *x, rt_uint16_t *y)
 {
     struct rt_spi_device *touch_dev = (struct rt_spi_device *)dev;
@@ -191,7 +190,7 @@ static void touch_readly(void *args)
     }
 }
 
-static rt_size_t xpt2046_read_point(struct rt_touch_device *touch, void *buf, rt_size_t read_num)
+static rt_ssize_t xpt2046_read_point(struct rt_touch_device *touch, void *buf, rt_size_t read_num)
 {
     rt_uint16_t* touchxy = (rt_uint16_t *)buf;
     if((read_num != 0) && (touch_flag == 1))
@@ -218,7 +217,7 @@ static struct rt_touch_ops touch_ops =
     .touch_control = xpt2046_control,
 };
 
-static int hw_xpt2049_touch_init(void)
+static int hw_xpt2046_touch_init(void)
 {
     //touch sem
     rt_sem_init(&touch_ack, "touch_ack", 0, RT_IPC_FLAG_FIFO);
@@ -249,4 +248,4 @@ static int hw_xpt2049_touch_init(void)
 
     return 0;
 }
-INIT_DEVICE_EXPORT(hw_xpt2049_touch_init);
+INIT_DEVICE_EXPORT(hw_xpt2046_touch_init);

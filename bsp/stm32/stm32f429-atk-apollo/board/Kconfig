@@ -1,12 +1,5 @@
 menu "Hardware Drivers Config"
 
-config SOC_STM32F429IG
-    bool
-    select SOC_SERIES_STM32F4
-    select RT_USING_COMPONENTS_INIT
-    select RT_USING_USER_MAIN
-    default y
-
 menu "Onboard Peripheral Drivers"
 
     config BSP_USING_USB_TO_USART
@@ -25,6 +18,7 @@ menu "Onboard Peripheral Drivers"
         bool "Enable COM3 (uart3 pin conflict with Ethernet)"
         select BSP_USING_UART3
         default n
+        depends on !BSP_USING_ETH
 
     config BSP_USING_SDRAM
         bool "Enable SDRAM"
@@ -49,7 +43,7 @@ menu "Onboard Peripheral Drivers"
         bool
 
     config BSP_USING_ETH
-        bool "Enable Ethernet"
+        bool "Enable Ethernet (Ethernet pin conflict with uart3)"
         select BSP_USING_I2C1
         select PKG_USING_PCF8574
         select RT_USING_LWIP
@@ -62,13 +56,13 @@ menu "Onboard Peripheral Drivers"
         select RT_USING_DFS
         select RT_USING_DFS_ELMFAT
         default n
-        
+
     config BSP_USING_AUDIO
         bool "Enable AUDIO (WM8978)"
         select BSP_USING_I2C1
         select RT_USING_AUDIO
         default n
-        
+
         if BSP_USING_AUDIO
             config BSP_USING_AUDIO_PLAY
             bool "Enable Audio Play"
@@ -78,8 +72,8 @@ menu "Onboard Peripheral Drivers"
             bool "Enable Audio Record"
             select BSP_USING_AUDIO_PLAY
             default n
-        endif        
-        
+        endif
+
 endmenu
 
 menu "On-chip Peripheral Drivers"
@@ -111,15 +105,16 @@ menu "On-chip Peripheral Drivers"
                 bool "Enable UART2 RX DMA"
                 depends on BSP_USING_UART2 && RT_SERIAL_USING_DMA
                 default n
-                
+
             config BSP_USING_UART3
                 bool "Enable UART3"
                 default n
-   
+                depends on !BSP_USING_ETH
+
             config BSP_UART3_RX_USING_DMA
                 bool "Enable UART3 RX DMA"
                 depends on BSP_USING_UART3 && RT_SERIAL_USING_DMA
-                default n  
+                default n
         endif
 
     config BSP_USING_ON_CHIP_FLASH
@@ -148,7 +143,7 @@ menu "On-chip Peripheral Drivers"
                 bool "Enable SPI1 TX DMA"
                 depends on BSP_USING_SPI1
                 default n
-                
+
             config BSP_SPI1_RX_USING_DMA
                 bool "Enable SPI1 RX DMA"
                 depends on BSP_USING_SPI1
@@ -157,33 +152,33 @@ menu "On-chip Peripheral Drivers"
 
             config BSP_USING_SPI2
                 bool "Enable SPI2 BUS"
-                default n  
-                
+                default n
+
             config BSP_SPI2_TX_USING_DMA
                 bool "Enable SPI2 TX DMA"
                 depends on BSP_USING_SPI2
                 default n
-                
+
             config BSP_SPI2_RX_USING_DMA
                 bool "Enable SPI2 RX DMA"
                 depends on BSP_USING_SPI2
                 select BSP_SPI2_TX_USING_DMA
                 default n
-                
+
             config BSP_USING_SPI5
                 bool "Enable SPI5 BUS"
-                default n        
+                default n
 
             config BSP_SPI5_TX_USING_DMA
                 bool "Enable SPI5 TX DMA"
                 depends on BSP_USING_SPI5
                 default n
-                
+
             config BSP_SPI5_RX_USING_DMA
                 bool "Enable SPI5 RX DMA"
                 depends on BSP_USING_SPI5
                 select BSP_SPI5_TX_USING_DMA
-                default n  
+                default n
         endif
 
     menuconfig BSP_USING_I2C1
@@ -223,12 +218,12 @@ menu "On-chip Peripheral Drivers"
         endif
 
     menuconfig BSP_USING_PWM
-        bool "Enable pwm"
+        bool "Enable PWM"
         default n
         select RT_USING_PWM
         if BSP_USING_PWM
         menuconfig BSP_USING_PWM2
-            bool "Enable timer2 output pwm"
+            bool "Enable timer2 output PWM"
             default n
             if BSP_USING_PWM2
                 config BSP_USING_PWM2_CH4
@@ -250,7 +245,6 @@ menu "On-chip Peripheral Drivers"
     menuconfig BSP_USING_ONCHIP_RTC
         bool "Enable RTC"
         select RT_USING_RTC
-        select RT_USING_LIBC
         default n
         if BSP_USING_ONCHIP_RTC
             choice
@@ -294,8 +288,8 @@ menu "On-chip Peripheral Drivers"
     config BSP_USING_FMC
         bool
         default n
-    source "../libraries/HAL_Drivers/Kconfig"
-    
+    source "$(BSP_DIR)/../libraries/HAL_Drivers/drivers/Kconfig"
+
 endmenu
 
 menu "Board extended module Drivers"

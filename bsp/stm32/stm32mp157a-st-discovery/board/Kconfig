@@ -1,12 +1,5 @@
 menu "Hardware Drivers Config"
 
-config SOC_STM32MP157A
-    bool
-    select SOC_SERIES_STM32MP1
-    select RT_USING_COMPONENTS_INIT
-    select RT_USING_USER_MAIN
-    default y
-
 menu "Onboard Peripheral Drivers"
 
     config BSP_USING_STLINK_TO_USART
@@ -51,17 +44,30 @@ menu "Onboard Peripheral Drivers"
             string "the uart name for rs485"
             default "uart3"
         endif
-    
+
     config BSP_USING_GBE
         bool "Enable Ethernet"
         default n
         select RT_USING_LWIP
-        
+
     config BSP_USING_SDMMC
-        bool "Enable SDMMC (SD card)"
+        bool "Enable SDMMC (sd card or sdio wifi)"
+        default n
         select RT_USING_SDIO
         select RT_USING_DFS
         select RT_USING_DFS_ELMFAT
+        if BSP_USING_SDMMC
+            config BSP_USING_SDIO1
+                bool "Enable SDIO1 (sd card)"
+                default n
+            config BSP_USING_SDIO2
+                select BSP_USING_RTC
+                bool "Enable SDIO2 (sdio wifi)"
+                default n
+        endif
+
+    config BSP_USING_RTC
+        bool "Enable RTC"
         default n
 
     menuconfig BSP_USING_AUDIO
@@ -156,12 +162,12 @@ menu "On-chip Peripheral Drivers"
         endif
 
     menuconfig BSP_USING_PWM
-        bool "Enable pwm"
+        bool "Enable PWM"
         default n
         select RT_USING_PWM
         if BSP_USING_PWM
         menuconfig BSP_USING_PWM4
-            bool "Enable timer4 output pwm"
+            bool "Enable timer4 output PWM"
             default n
             if BSP_USING_PWM4
                 config BSP_USING_PWM4_CH2
@@ -244,7 +250,7 @@ menu "On-chip Peripheral Drivers"
                 bool "Enable I2C4 BUS (software simulation)"
                 default n
                 if BSP_USING_I2C4
-                    comment "Notice: PD12 --> 60; PF15 --> 95" 
+                    comment "Notice: PD12 --> 60; PF15 --> 95"
                     config BSP_I2C4_SCL_PIN
                         int "i2c4 scl pin number"
                         range 1 191
@@ -278,7 +284,7 @@ menu "On-chip Peripheral Drivers"
                 default n
         endif
 
- source "../libraries/HAL_Drivers/Kconfig"
+ source "$(BSP_DIR)/../libraries/HAL_Drivers/drivers/Kconfig"
 
 endmenu
 

@@ -8,7 +8,7 @@
 #define RT_NAME_MAX	32
 
 /* RT_ALIGN_SIZE*/
-#define RT_ALIGN_SIZE	4
+#define RT_ALIGN_SIZE	8
 
 /* PRIORITY_MAX*/
 #define RT_THREAD_PRIORITY_MAX	32
@@ -87,13 +87,10 @@
 #define FINSH_USING_SYMTAB
 #define FINSH_USING_DESCRIPTION
 #define FINSH_THREAD_STACK_SIZE 8192
-#define RT_USING_TC
 
 
 /* SECTION: a runtime libc library */
 /* a runtime libc library*/
-/* #define RT_USING_NEWLIB */
-#define RT_USING_MINILIBC
 
 /* SECTION: C++ support */
 /* Using C++ support*/

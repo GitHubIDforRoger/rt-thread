@@ -10,7 +10,7 @@ MEMORY
     RAM2 (rw) : ORIGIN = 0x10000000, LENGTH =  16k /* 16K sram */
 }
 ENTRY(Reset_Handler)
-_system_stack_size = 0x200;
+_system_stack_size = 0x400;
 
 SECTIONS
 {
@@ -92,7 +92,7 @@ SECTIONS
         _edata = . ;
     } >RAM2
 
-    .stack : 
+    .stack :
     {
         . = ALIGN(4);
         _sstack = .;
@@ -115,7 +115,7 @@ SECTIONS
         . = ALIGN(4);
         /* This is used by the startup in order to initialize the .bss secion */
         _ebss = . ;
-        
+
         *(.bss.init)
     } > RAM2
     __bss_end = .;

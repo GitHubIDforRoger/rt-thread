@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2019, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -11,9 +11,11 @@
 #include <rthw.h>
 #include <stdint.h>
 #include <rtthread.h>
+#include <rtdevice.h>
 #include "mbox.h"
 #include "drv_fb.h"
 #include "mmu.h"
+#include "cache.h"
 
 #define LCD_WIDTH     (800)
 #define LCD_HEIGHT    (480)
@@ -116,7 +118,7 @@ rt_err_t hdmi_fb_control(rt_device_t dev, int cmd, void *args)
     return RT_EOK;
 }
 
-const static struct rt_device_ops hdmi_fb_ops = 
+const static struct rt_device_ops hdmi_fb_ops =
 {
     RT_NULL,
     hdmi_fb_open,
@@ -157,7 +159,7 @@ rt_uint32_t bcm283x_mbox_fb_get_gpiovirt(void)
 {
     mbox[0] = 8*4;                      // length of the message
     mbox[1] = MBOX_REQUEST;             // this is a request message
-    
+
     mbox[2] = MBOX_TAG_FB_GET_GPIOVIRT;
     mbox[3] = 4;                        // buffer size
     mbox[4] = 0;                        // len
@@ -174,7 +176,7 @@ rt_uint32_t bcm283x_mbox_fb_get_pitch(void)
 {
     mbox[0] = 8*4;                  // length of the message
     mbox[1] = MBOX_REQUEST;         // this is a request message
-    
+
     mbox[2] = MBOX_TAG_FB_GET_PITCH;
     mbox[3] = 4;                    // buffer size
     mbox[4] = 0;                    // len
@@ -191,7 +193,7 @@ void bcm283x_mbox_fb_set_porder(int rgb)
 {
     mbox[0] = 8*4;                      // length of the message
     mbox[1] = MBOX_REQUEST;             // this is a request message
-    
+
     mbox[2] = MBOX_TAG_FB_SET_PIXEL_ORDER;
     mbox[3] = 4;                        // buffer size
     mbox[4] = 4;                        // len
@@ -207,7 +209,7 @@ void bcm283x_mbox_fb_setoffset(int xoffset, int yoffset)
 {
     mbox[0] = 8*4;                      // length of the message
     mbox[1] = MBOX_REQUEST;             // this is a request message
-    
+
     mbox[2] = MBOX_TAG_FB_SET_VIRT_OFFSET;
     mbox[3] = 8;                        // buffer size
     mbox[4] = 8;                        // len
@@ -225,7 +227,7 @@ void bcm283x_mbox_fb_setalpha(int alpha)
 
     mbox[0] = 8*4;                      // length of the message
     mbox[1] = MBOX_REQUEST;             // this is a request message
-    
+
     mbox[2] = MBOX_TAG_FB_SET_ALPHA_MODE;
     mbox[3] = 4;                        // buffer size
     mbox[4] = 4;                        // len
@@ -299,9 +301,9 @@ int hdmi_fb_init(void)
     _hdmi.pitch = 0;
     _hdmi.pixel_format = RTGRAPHIC_PIXEL_FORMAT_RGB888;
 
-    armv8_map((unsigned long)_hdmi.fb, (unsigned long)_hdmi.fb, 0x200000, MEM_ATTR_IO);
+    // rt_hw_mmu_map(&mmu_info, (unsigned long)_hdmi.fb, (void *)0x200000, DEVICE_MEM);
 
-    rt_hw_dcache_invalidate_range((unsigned long)_hdmi.fb,LCD_WIDTH * LCD_HEIGHT * 3);
+    rt_hw_cpu_dcache_invalidate((unsigned long)_hdmi.fb,LCD_WIDTH * LCD_HEIGHT * 3);
 
     //rt_kprintf("_hdmi.fb is %p\n", _hdmi.fb);
     rt_hdmi_fb_device_init(&_hdmi, "lcd");

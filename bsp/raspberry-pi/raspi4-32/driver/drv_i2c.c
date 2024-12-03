@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2020, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -16,7 +16,7 @@
 /*
 * (3.3v)          -1   2-
 * (SDA1/SDA3)     -3   4-
-* (SCL1/SCL3)     -5   6-  
+* (SCL1/SCL3)     -5   6-
 * (SDA3)          -7   8-
 *                 -9  10-
 *                 -11 12-
@@ -131,7 +131,7 @@ rt_uint8_t i2c_read_or_write(volatile rt_uint32_t base, rt_uint8_t* buf, rt_uint
     return reason;
 }
 
-static rt_size_t raspi_i2c_mst_xfer(struct rt_i2c_bus_device *bus,
+static rt_ssize_t raspi_i2c_mst_xfer(struct rt_i2c_bus_device *bus,
                                     struct rt_i2c_msg msgs[],
                                     rt_uint32_t num)
 {
@@ -154,7 +154,7 @@ static rt_size_t raspi_i2c_mst_xfer(struct rt_i2c_bus_device *bus,
     return (reason == 0)? i : 0;
 }
 
-static rt_size_t raspi_i2c_slv_xfer(struct rt_i2c_bus_device *bus,
+static rt_ssize_t raspi_i2c_slv_xfer(struct rt_i2c_bus_device *bus,
                                     struct rt_i2c_msg msgs[],
                                     rt_uint32_t num)
 {
@@ -162,8 +162,8 @@ static rt_size_t raspi_i2c_slv_xfer(struct rt_i2c_bus_device *bus,
 }
 
 static rt_err_t raspi_i2c_bus_control(struct rt_i2c_bus_device *bus,
-                                      rt_uint32_t cmd,
-                                      rt_uint32_t arg)
+                                      int cmd,
+                                      void *args)
 {
     return RT_EOK;
 }
@@ -268,7 +268,7 @@ static struct raspi_i2c_hw_config hw_device4 =
     .scl_pin = GPIO_PIN_7,
 #else
     .sda_pin = GPIO_PIN_8,
-    .scl_pin = GPIO_PIN_9, 
+    .scl_pin = GPIO_PIN_9,
 #endif
     .sda_mode = ALT5,
     .scl_mode = ALT5,

@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
- * 
+ * Copyright (c) 2006-2021, RT-Thread Development Team
+ *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Date           Author       Notes
@@ -290,7 +290,7 @@ static void sound_buffer_info(struct rt_audio_device *audio, struct rt_audio_buf
     info->block_count = 2;
 }
 
-static rt_size_t sound_transmit(struct rt_audio_device *audio, const void *writeBuf, void *readBuf, rt_size_t size)
+static rt_ssize_t sound_transmit(struct rt_audio_device *audio, const void *writeBuf, void *readBuf, rt_size_t size)
 {
     RT_ASSERT(audio != RT_NULL);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -13,9 +13,9 @@
 
 #ifdef BSP_USING_WIFI
 
-#include <wlan_mgnt.h>
-#include <wlan_cfg.h>
-#include <wlan_prot.h>
+#include <dev_wlan_mgnt.h>
+#include <dev_wlan_cfg.h>
+#include <dev_wlan_prot.h>
 
 #include <easyflash.h>
 #include <fal.h>
@@ -200,7 +200,7 @@ static int read_cfg(void *buff, int len)
     {
         return 0;
     }
-    
+
     return len;
 }
 

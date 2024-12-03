@@ -15,15 +15,15 @@ CPU = 'cortex-m0'
 # EXEC_PATH is the compiler execute path, for example, CodeSourcery, Keil MDK, IAR
 if  CROSS_TOOL  == 'gcc': # not support gcc yet
     PLATFORM    = 'gcc'
-    EXEC_PATH   = 'C:/GCC'
+    EXEC_PATH   = r'C:/GCC'
 
 elif CROSS_TOOL == 'keil':
     PLATFORM    = 'armcc'
-    EXEC_PATH   = 'C:/Keil'
+    EXEC_PATH   = r'C:/Keil'
 
 elif CROSS_TOOL == 'iar': # not support iar yet
-    PLATFORM    = 'iar'
-    EXEC_PATH   = 'C:/IAR'
+    PLATFORM    = 'iccarm'
+    EXEC_PATH   = r'C:/IAR'
 
 if os.getenv('RTT_EXEC_PATH'):
     EXEC_PATH = os.getenv('RTT_EXEC_PATH')
@@ -46,7 +46,7 @@ if PLATFORM == 'gcc':
     DEVICE = ' -mcpu=' + CPU + ' -mthumb -ffunction-sections -fdata-sections'
     CFLAGS = DEVICE
     AFLAGS = ' -c' + DEVICE + ' -x assembler-with-cpp -Wa,-mimplicit-it=thumb'
-    LFLAGS = DEVICE + ' -Wl,--gc-sections,-Map=rtthread.map,-cref,-u,Reset_Handler -T drivers/linker_scripts/link.lds'
+    LFLAGS = DEVICE + ' -Wl,--gc-sections,-Map=rtthread.map,-cref,-u,Reset_Handler -T board/linker_scripts/link.lds'
 
     CPATH = ''
     LPATH = ''
@@ -69,7 +69,7 @@ elif PLATFORM == 'armcc':
     DEVICE = ' --device DARMSTM'
     CFLAGS = '-c ' + DEVICE + ' --apcs=interwork --c99'
     AFLAGS = DEVICE + ' --apcs=interwork '
-    LFLAGS = DEVICE + ' --scatter "drivers/linker_scripts/link.sct" --info sizes --info totals --info unused --info veneers --list rtthread.map  --strict'
+    LFLAGS = DEVICE + ' --scatter "board/linker_scripts/link.sct" --info sizes --info totals --info unused --info veneers --list rtthread.map  --strict'
 
     CFLAGS += ' -I' + EXEC_PATH + '/ARM/ARMCC/include'
     LFLAGS += ' --libpath ' + EXEC_PATH + '/ARM/ARMCC/lib'
@@ -87,7 +87,7 @@ elif PLATFORM == 'armcc':
 
     POST_ACTION = 'fromelf --bin $TARGET --output rtthread.bin \nfromelf -z $TARGET'
 
-elif PLATFORM == 'iar':
+elif PLATFORM == 'iccarm':
     # toolchains
     CC = 'iccarm'
     AS = 'iasmarm'
@@ -121,7 +121,7 @@ elif PLATFORM == 'iar':
     AFLAGS += ' --fpu None' 
     AFLAGS += ' -S'
 
-    LFLAGS = ' --config "drivers\linker_scripts\link.icf"'
+    LFLAGS = ' --config "board\linker_scripts\link.icf"'
     LFLAGS += ' --redirect _Printf=_PrintfTiny' 
     LFLAGS += ' --redirect _Scanf=_ScanfSmall' 
     if BUILD == 'debug':

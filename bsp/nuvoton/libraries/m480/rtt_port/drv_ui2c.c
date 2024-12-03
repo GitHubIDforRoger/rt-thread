@@ -15,13 +15,14 @@
 #if (defined(BSP_USING_UI2C) && defined(RT_USING_I2C))
 
 #include <rtdevice.h>
-#include <NuMicro.h>
+#include "NuMicro.h"
 
 /* Private define ---------------------------------------------------------------*/
 #define LOG_TAG          "drv.ui2c"
 #define DBG_ENABLE
 #define DBG_SECTION_NAME LOG_TAG
 #define DBG_LEVEL        DBG_INFO
+#define DBG_COLOR
 #include <rtdbg.h>
 
 #define SLV_10BIT_ADDR (0x1E<<2)             //1111+0xx+r/w
@@ -36,7 +37,7 @@ typedef struct nu_ui2c_bus
 } nu_ui2c_bus_t;
 
 /* Private functions ------------------------------------------------------------*/
-static rt_size_t nu_ui2c_mst_xfer(struct rt_i2c_bus_device *ui2c_dev,
+static rt_ssize_t nu_ui2c_mst_xfer(struct rt_i2c_bus_device *ui2c_dev,
                                   struct rt_i2c_msg msgs[],
                                   rt_uint32_t num);
 
@@ -187,7 +188,7 @@ static rt_err_t nu_ui2c_send_address(nu_ui2c_bus_t *nu_ui2c,
     return RT_EOK;
 }
 
-static rt_size_t nu_ui2c_mst_xfer(struct rt_i2c_bus_device *bus,
+static rt_ssize_t nu_ui2c_mst_xfer(struct rt_i2c_bus_device *bus,
                                   struct rt_i2c_msg msgs[],
                                   rt_uint32_t num)
 {
@@ -351,7 +352,7 @@ static rt_size_t nu_ui2c_mst_xfer(struct rt_i2c_bus_device *bus,
 /* Public functions -------------------------------------------------------------*/
 int rt_hw_ui2c_init(void)
 {
-    rt_err_t ret = RT_ERROR;
+    rt_err_t ret = -RT_ERROR;
 
 #if defined(BSP_USING_UI2C0)
     /* Enable UI2C0 clock */
@@ -382,4 +383,4 @@ int rt_hw_ui2c_init(void)
 
 INIT_DEVICE_EXPORT(rt_hw_ui2c_init);
 
-#endif //#if (defined(BSP_USING_UI2C) && defined(RT_USING_I2C))
+#endif //#if defined(BSP_USING_UI2C)

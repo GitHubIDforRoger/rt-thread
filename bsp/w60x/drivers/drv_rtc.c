@@ -11,7 +11,7 @@
 
 #include <rtdevice.h>
 #include <rtthread.h>
-#include <time.h>
+#include <sys/time.h>
 #include "wm_regs.h"
 #include "wm_irq.h"
 #include "tls_common.h"
@@ -42,7 +42,7 @@ static time_t wm_get_timestamp(void)
     tm_new.tm_min  = (ctrl1 & 0x00003f00) >>  8;
     tm_new.tm_sec  =  ctrl1 & 0x0000003f;
 
-    return mktime(&tm_new);
+    return timegm(&tm_new);
 }
 
 static int wm_set_timestamp(time_t timestamp)
@@ -50,23 +50,23 @@ static int wm_set_timestamp(time_t timestamp)
     int ctrl1 = 0;
     int ctrl2 = 0;
 
-    struct tm *tblock;
+    struct tm tblock;
 
-    tblock = localtime(&timestamp);
+    gmtime_r(&timestamp, &tblock);
 
     ctrl2  = tls_reg_read32(HR_PMU_RTC_CTRL2);  /* disable */
     ctrl2 &= ~(1 << 16);
     tls_reg_write32(HR_PMU_RTC_CTRL2, ctrl2);
 
-    ctrl1 |= tblock->tm_sec;
-    ctrl1 |= tblock->tm_min  << 8;
-    ctrl1 |= tblock->tm_hour << 16;
-    ctrl1 |= tblock->tm_mday << 24;
+    ctrl1 |= tblock.tm_sec;
+    ctrl1 |= tblock.tm_min  << 8;
+    ctrl1 |= tblock.tm_hour << 16;
+    ctrl1 |= tblock.tm_mday << 24;
     tls_reg_write32(HR_PMU_RTC_CTRL1, ctrl1);
 
     ctrl2  = 0;
-    ctrl2 |= tblock->tm_mon;
-    ctrl2 |= tblock->tm_year << 8;
+    ctrl2 |= tblock.tm_mon;
+    ctrl2 |= tblock.tm_year << 8;
     tls_reg_write32(HR_PMU_RTC_CTRL2, ctrl2);
 
     ctrl2  = tls_reg_read32(HR_PMU_RTC_CTRL2);/* enable */
@@ -80,21 +80,21 @@ static int wm_alarm_set_timestamp(struct rt_rtc_wkalarm *wkalarm)
 {
     int ctrl1 = 0;
     int ctrl2 = 0;
-    struct tm *tblock;
+    struct tm tblock;
     time_t timestamp = 0;
 
     timestamp = wm_get_timestamp();
-    tblock = localtime(&timestamp);
+    gmtime_r(&timestamp, &tblock);
 
     tls_irq_enable(PMU_RTC_INT);
 
     ctrl1 |= wkalarm->tm_sec;
     ctrl1 |= wkalarm->tm_min  << 8;
     ctrl1 |= wkalarm->tm_hour << 16;
-    ctrl1 |= tblock->tm_mday << 24;
+    ctrl1 |= tblock.tm_mday << 24;
 
-    ctrl2 |= tblock->tm_mon;
-    ctrl2 |= tblock->tm_year << 8;
+    ctrl2 |= tblock.tm_mon;
+    ctrl2 |= tblock.tm_year << 8;
 
     tls_reg_write32(HR_PMU_RTC_CTRL2, ctrl2 | BIT(16));
 
@@ -154,25 +154,25 @@ static rt_err_t wm_rtc_control(rt_device_t dev, int cmd, void *args)
         break;
 #endif
     default:
-        return RT_EINVAL;
+        return -RT_EINVAL;
     }
     return RT_EOK;
 }
 
-static rt_size_t wm_rtc_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
+static rt_ssize_t wm_rtc_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
     wm_rtc_control(dev, RT_DEVICE_CTRL_RTC_GET_TIME, buffer);
     return size;
 }
 
-static rt_size_t wm_rtc_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
+static rt_ssize_t wm_rtc_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
     wm_rtc_control(dev, RT_DEVICE_CTRL_RTC_SET_TIME, (void *)buffer);
     return size;
 }
 
 #ifdef RT_USING_DEVICE_OPS
-const static struct rt_device_ops _ops = 
+const static struct rt_device_ops _ops =
 {
     .init = wm_rtc_init,
     .open = wm_rtc_open,

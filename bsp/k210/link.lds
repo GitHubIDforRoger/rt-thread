@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2023, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -35,7 +35,7 @@ SECTIONS
 
     . = ALIGN(8);
 
-    .text : 
+    .text :
     {
         *(.text)                        /* remaining code */
         *(.text.*)                      /* remaining code */
@@ -44,7 +44,19 @@ SECTIONS
         *(.glue_7)
         *(.glue_7t)
         *(.gnu.linkonce.t*)
-     
+
+        . = ALIGN(8);
+
+        PROVIDE(__ctors_start__ = .);
+        /* old GCC version uses .ctors */
+        KEEP(*(SORT(.ctors.*)))
+        KEEP(*(.ctors))
+        /* new GCC version uses .init_array */
+        KEEP (*(SORT(.init_array.*)))
+        KEEP (*(.init_array))
+        PROVIDE(__ctors_end__ = .);
+
+
         /* section information for finsh shell */
         . = ALIGN(8);
         __fsymtab_start = .;
@@ -63,6 +75,13 @@ SECTIONS
         __rt_init_end = .;
         . = ALIGN(8);
 
+
+        __spi_func_start = .;
+        KEEP(*(.spi_call))
+        __spi_func_end = .;
+
+        . = ALIGN(8);
+
         __rt_utest_tc_tab_start = .;
         KEEP(*(UtestTcTab))
         __rt_utest_tc_tab_end = .;
@@ -71,20 +90,20 @@ SECTIONS
         _etext = .;
     } > SRAM
 
-    .eh_frame_hdr : 
-    { 
-         *(.eh_frame_hdr) 
+    .eh_frame_hdr :
+    {
+         *(.eh_frame_hdr)
          *(.eh_frame_entry)
     } > SRAM
     .eh_frame : ONLY_IF_RO { KEEP (*(.eh_frame)) } > SRAM
 
     . = ALIGN(8);
 
-    .data : 
+    .data :
     {
         *(.data)
         *(.data.*)
-    
+
         *(.data1)
         *(.data1.*)
 
@@ -93,6 +112,12 @@ SECTIONS
 
         *(.sdata)
         *(.sdata.*)
+
+        PROVIDE(__dtors_start__ = .);
+        KEEP(*(SORT(.dtors.*)))
+        KEEP(*(.dtors))
+        PROVIDE(__dtors_end__ = .);
+
     } > SRAM
 
     /* stack for dual core */
@@ -103,12 +128,13 @@ SECTIONS
 
         . += __STACKSIZE__;
         __stack_cpu0 = .;
+        PROVIDE( __rt_rvstack = .);
 
         . += __STACKSIZE__;
         __stack_cpu1 = .;
     } > SRAM
 
-    .sbss : 
+    .sbss :
     {
     __bss_start = .;
         *(.sbss)

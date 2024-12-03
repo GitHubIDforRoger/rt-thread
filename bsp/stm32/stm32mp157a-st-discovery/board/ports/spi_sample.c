@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2022, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -21,22 +21,22 @@ static int rt_spi_device_init(void)
 {
     struct rt_spi_configuration cfg;
 
-    rt_hw_spi_device_attach("spi5", "spi50", NULL, NULL);
+    rt_hw_spi_device_attach("spi5", "spi50", PIN_NONE);
 
     cfg.data_width = 8;
     cfg.mode   = RT_SPI_MASTER | RT_SPI_MODE_0 | RT_SPI_MSB | RT_SPI_NO_CS;
     cfg.max_hz = 1 *1000 *1000;
 
     spi_dev = (struct rt_spi_device *)rt_device_find(SPI_NAME);
-    
+
     if (RT_NULL == spi_dev)
     {
         rt_kprintf("spi sample run failed! can't find %s device!\n", SPI_NAME);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
-    
+
     rt_spi_configure(spi_dev, &cfg);
-    
+
     return RT_EOK;
 }
 INIT_APP_EXPORT(rt_spi_device_init);
@@ -44,22 +44,22 @@ INIT_APP_EXPORT(rt_spi_device_init);
 /* spi5 loopback mode test case */
 static int spi_sample(int argc, char **argv)
 {
-    rt_uint8_t t_buf[8], r_buf[8];     
-    int i = 0; 
+    rt_uint8_t t_buf[8], r_buf[8];
+    int i = 0;
     static struct rt_spi_message msg1;
-    
+
     if (argc != 9)
     {
         rt_kprintf("Usage:\n");
         rt_kprintf("spi_sample 1 2 3 4 5 6 7 8\n");
         return -RT_ERROR;
     }
-    
+
     for (i = 0; i < 8; i++)
     {
         t_buf[i] = atoi(argv[i+1]);
     }
-    
+
     msg1.send_buf   = &t_buf;
     msg1.recv_buf   = &r_buf;
     msg1.length     = sizeof(t_buf);

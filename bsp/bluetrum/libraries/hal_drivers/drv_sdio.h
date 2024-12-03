@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020-2021, Bluetrum Development Team
- * 
+ *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
@@ -13,8 +13,8 @@
 
 #include "drv_common.h"
 #include "board.h"
-#include "drivers/mmcsd_core.h"
-#include "drivers/sdio.h"
+#include "drivers/dev_mmcsd_core.h"
+#include "drivers/dev_sdio.h"
 
 #define SDIO_BUFF_SIZE       1024
 #define SDIO_ALIGN_LEN       32

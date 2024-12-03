@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -36,14 +36,21 @@
 extern "C" {
 #endif
 
-/* the debug log will force enable when RT_DEBUG macro is defined */
-#if defined(RT_DEBUG) && !defined(DBG_ENABLE)
+/* the debug log will force enable when RT_USING_DEBUG macro is defined */
+#if defined(RT_USING_DEBUG) && !defined(DBG_ENABLE)
 #define DBG_ENABLE
 #endif
 
-/* it will force output color log when RT_DEBUG_COLOR macro is defined */
-#if defined(RT_DEBUG_COLOR) && !defined(DBG_COLOR)
+/* it will force output color log when RT_DEBUGING_COLOR macro is defined */
+#if defined(RT_DEBUGING_COLOR) && !defined(DBG_COLOR)
 #define DBG_COLOR
+#endif
+
+/* for dlog */
+#ifdef PKG_USING_DLOG
+#include <dlog.h>
+#else
+#define DLOG(...)
 #endif
 
 #if defined(RT_USING_ULOG)
@@ -177,6 +184,8 @@ extern "C" {
 #endif
 
 #define LOG_RAW(...)         dbg_raw(__VA_ARGS__)
+
+#define LOG_HEX(name, width, buf, size)
 
 #endif /* defined(RT_USING_ULOG) && define(DBG_ENABLE) */
 

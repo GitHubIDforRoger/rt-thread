@@ -1,12 +1,5 @@
 menu "Hardware Drivers Config"
 
-config SOC_STM32MP157A
-    bool
-    select SOC_SERIES_STM32MP1
-    select RT_USING_COMPONENTS_INIT
-    select RT_USING_USER_MAIN
-    default y
-
 menu "Onboard Peripheral Drivers"
 
     config BSP_USING_STLINK_TO_USART
@@ -14,7 +7,7 @@ menu "Onboard Peripheral Drivers"
         select BSP_USING_UART
         select BSP_USING_UART4
         default y
-        
+
     config BSP_USING_EXTI
         bool "Enable exti sample"
         default n
@@ -96,7 +89,7 @@ menu "Onboard Peripheral Drivers"
         bool "Enable CAMERA (ov5640)"
         select BSP_USING_MFX
         select BSP_USING_PMIC
-	select BSP_USING_SDMMC
+    select BSP_USING_SDMMC
         select BSP_USING_SDCARD
         select BSP_USING_I2C
         select BSP_USING_I2C2
@@ -148,7 +141,7 @@ menu "On-chip Peripheral Drivers"
         select RT_USING_QSPI
         select RT_USING_SPI
         default n
-    
+
     config BSP_USING_SPDIFRX
         bool "Enable spdifrx"
         select BSP_USING_AUDIO
@@ -223,12 +216,12 @@ menu "On-chip Peripheral Drivers"
         endif
 
     menuconfig BSP_USING_PWM
-        bool "Enable pwm"
+        bool "Enable PWM"
         default n
         select RT_USING_PWM
         if BSP_USING_PWM
         menuconfig BSP_USING_PWM4
-            bool "Enable timer4 output pwm"
+            bool "Enable timer4 output PWM"
             default n
             if BSP_USING_PWM4
                 config BSP_USING_PWM4_CH2
@@ -292,7 +285,7 @@ menu "On-chip Peripheral Drivers"
                         range 1 176
                         default 117
                 endif
-	    menuconfig BSP_USING_I2C3
+        menuconfig BSP_USING_I2C3
                 bool "Enable I2C3 BUS (software simulation)"
                 default n
                 if BSP_USING_I2C3
@@ -328,7 +321,7 @@ menu "On-chip Peripheral Drivers"
             default n
     endif
 
- source "../libraries/HAL_Drivers/Kconfig"
+ source "$(BSP_DIR)/../libraries/HAL_Drivers/drivers/Kconfig"
 
 endmenu
 

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
- * 2020-03-19 	  WangHuachen  first version
+ * 2020-03-19     WangHuachen  first version
  */
 
 #include <rthw.h>
@@ -16,7 +16,7 @@
 
 #define MAX_HANDLERS                IRQ_ZynqMP_MAXNR
 
-extern volatile rt_uint8_t rt_interrupt_nest;
+extern volatile rt_atomic_t rt_interrupt_nest;
 
 /* exception and interrupt handler table */
 struct rt_irq_desc isr_table[MAX_HANDLERS];

@@ -1,11 +1,18 @@
 import os
+import sys
+import SCons.Tool.MSCommon.vc
 
 # toolchains options
 ARCH='sim'
+ASAN = False
 #CROSS_TOOL='msvc' or 'gcc' or 'mingw'
 #'msvc' and 'mingw' are both for windows
 # 'gcc' is for linux
-CROSS_TOOL='mingw'
+if sys.platform == 'win32':
+    CROSS_TOOL='msvc'
+else:
+    CROSS_TOOL='gcc'
+    ASAN = True
 
 if os.getenv('RTT_CC'):
 	CROSS_TOOL = os.getenv('RTT_CC')
@@ -15,7 +22,7 @@ if os.getenv('RTT_CC'):
 if  CROSS_TOOL == 'gcc' or CROSS_TOOL == 'clang-analyze':
     CPU       = 'posix'
     PLATFORM  = 'gcc'
-    EXEC_PATH = ''
+    EXEC_PATH = '/usr/bin'
 
 elif  CROSS_TOOL == 'mingw':
     CPU       = 'win32'
@@ -26,8 +33,25 @@ elif  CROSS_TOOL == 'msvc':
     CPU       = 'win32'
     PLATFORM  = 'cl'
     EXEC_PATH = ''
+    try:
+        vc_version = ''
+        vc_versions = SCons.Tool.MSCommon.vc.get_installed_vcs()
+        if not vc_versions:
+            print("No vc version!")
+            exit(1)
+        else:
+            vc_version = vc_versions[0]
+        EXEC_PATH = SCons.Tool.MSCommon.vc.find_vc_pdir(vc_version)
+        if not EXEC_PATH:
+            print('Installed VC %s failure!' % vc_version)
+            exit(1)
+        else:
+            print('Successfully installed VC %s, path:%s' % (vc_version, EXEC_PATH))
+    except:
+        pass
+
 else:
-    print("bad CROSS TOOL!")
+    print("Simulator does not support this CROSS TOOL!")
     exit(1)
 
 if os.getenv('RTT_EXEC_PATH'):
@@ -49,11 +73,11 @@ if PLATFORM == 'gcc':
     OBJCPY = PREFIX + 'objcopy'
 
     DEVICE = ' -ffunction-sections -fdata-sections'
-    DEVICE = '  '
+    # DEVICE = ' -m32 ' # open this when build 32bit target on 64bit PC
     CFLAGS = DEVICE + ' -I/usr/include -w -D_REENTRANT -D_LINUX -DHAVE_SYS_SIGNALS'
     AFLAGS = ' -c' + DEVICE + ' -x assembler-with-cpp'
-    #LFLAGS = DEVICE + ' -Wl,--gc-sections,-Map=rtthread-linux.map -lpthread'
-    LFLAGS = DEVICE + ' -Wl,-Map=rtthread-linux.map -pthread -T gcc.ld'
+    # LFLAGS = DEVICE + ' -Wl,-Map=rtthread-linux.map -pthread -T gcc.ld' # open this when build 32bit target
+    LFLAGS = DEVICE + ' -Wl,-Map=rtthread-linux.map -pthread -T gcc_elf64.ld' # open this when build 64bit target
 
     CPATH = ''
     LPATH = ''
@@ -64,6 +88,8 @@ if PLATFORM == 'gcc':
     else:
         CFLAGS += ' -O2'
 
+    if ASAN == True:
+        CFLAGS += ' -Wall -g -O0 -fsanitize=address -fsanitize-recover=address,all -fno-omit-frame-pointer -fsanitize=leak -fsanitize=undefined -fdiagnostics-color'
     POST_ACTION = ''
 
 elif PLATFORM == 'mingw':

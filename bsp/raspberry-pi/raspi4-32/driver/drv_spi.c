@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2020, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -98,11 +98,11 @@ static rt_err_t raspi_spi_configure(struct rt_spi_device *device, struct rt_spi_
 
     if(cfg->mode & RT_SPI_CS_HIGH)
     {
-        SPI_REG_CS(hwcfg->hw_base) |= SPI_CS_CSPOL_HIGH;   
+        SPI_REG_CS(hwcfg->hw_base) |= SPI_CS_CSPOL_HIGH;
     }
     else
     {
-        SPI_REG_CS(hwcfg->hw_base) &= ~SPI_CS_CSPOL_HIGH;   
+        SPI_REG_CS(hwcfg->hw_base) &= ~SPI_CS_CSPOL_HIGH;
     }
     return RT_EOK;
 }
@@ -140,7 +140,7 @@ static rt_err_t spi_transfernb(struct raspi_spi_hw_config *hwcfg, rt_uint8_t* tb
     return RT_EOK;
 }
 
-static rt_uint32_t raspi_spi_xfer(struct rt_spi_device *device, struct rt_spi_message *message)
+static rt_ssize_t raspi_spi_xfer(struct rt_spi_device *device, struct rt_spi_message *message)
 {
     rt_err_t res;
     rt_uint8_t flag;
@@ -157,7 +157,7 @@ static rt_uint32_t raspi_spi_xfer(struct rt_spi_device *device, struct rt_spi_me
     if (config.mode & RT_SPI_MSB)
     {
         flag = 1;
-    }   
+    }
     else
     {
         flag = 0;
@@ -172,7 +172,7 @@ static rt_uint32_t raspi_spi_xfer(struct rt_spi_device *device, struct rt_spi_me
     {
         SPI_REG_CLK(hwcfg->hw_base) = (RPI_CORE_CLK_HZ / (config.max_hz));
     }
-    
+
     //cs_pin spi0.0
     if(cs_pin == GPIO_PIN_8)
     {
@@ -197,7 +197,7 @@ static rt_uint32_t raspi_spi_xfer(struct rt_spi_device *device, struct rt_spi_me
     }
 
     if (res != RT_EOK)
-           return RT_ERROR;
+           return res;
 
     return message->length;
 }

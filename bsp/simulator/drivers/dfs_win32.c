@@ -1,11 +1,7 @@
 /*
- * File      : rtthread.h
- * This file is part of RT-Thread RTOS
- * COPYRIGHT (C) 2006-2012, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
- * The license and distribution terms for this file may be
- * found in the file LICENSE in this distribution or at
- * http://www.rt-thread.org/license/LICENSE.
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
@@ -14,7 +10,6 @@
  * 2017-10-20     urey         support rt-thread 3.0
  */
 #include <rtthread.h>
-#include <rtlibc.h>
 
 #include <dfs_fs.h>
 #include <dfs_file.h>
@@ -28,22 +23,6 @@
 #include <WinError.h>
 #include <windows.h>
 
-#if defined(__MINGW32__) && defined(_NO_OLDNAMES)
-#define O_RDONLY    _O_RDONLY
-#define O_WRONLY    _O_WRONLY
-#define O_RDWR      _O_RDWR
-#define O_ACCMODE   _O_ACCMODE
-#define O_APPEND    _O_APPEND
-#define O_CREAT     _O_CREAT
-#define O_TRUNC     _O_TRUNC
-#define O_EXCL      _O_EXCL
-#define O_TEXT      _O_TEXT
-#define O_BINARY    _O_BINARY
-#define O_TEMPORARY _O_TEMPORARY
-#define O_NOINHERIT _O_NOINHERIT
-#define O_SEQUENTIAL   _O_SEQUENTIAL
-#define O_RANDOM    _O_RANDOM
-#endif
 /*
  * RT-Thread DFS Interface for win-directory as an disk device
  */
@@ -165,7 +144,7 @@ char * dfs_win32_dirdup(char * path)
     return file_path;
 }
 
-static int dfs_win32_open(struct dfs_fd *file)
+static int dfs_win32_open(struct dfs_file *file)
 {
     int fd;
     uint32_t oflag, mode;
@@ -179,7 +158,7 @@ static int dfs_win32_open(struct dfs_fd *file)
         HANDLE handle;
         int len;
 
-        file_path = winpath_dirdup(WIN32_DIRDISK_ROOT, file->path);
+        file_path = winpath_dirdup(WIN32_DIRDISK_ROOT, file->vnode->path);
 
         if (oflag & O_CREAT)   /* create a dir*/
         {
@@ -212,12 +191,12 @@ static int dfs_win32_open(struct dfs_fd *file)
         len = strlen(wdirp->finddata.name) + 1;
         wdirp->handle = handle;
         //wdirp->nfiles = 1;
-        wdirp->start = malloc(len); //not rt_malloc!
+        wdirp->start = (char *)malloc(len); //not rt_malloc!
         wdirp->end = wdirp->curr = wdirp->start;
         wdirp->end += len;
-        strncpy(wdirp->curr, wdirp->finddata.name, len);
+        rt_strncpy(wdirp->curr, wdirp->finddata.name, len);
 
-        file->data = (void *)wdirp;
+        file->vnode->data = (void *)wdirp;
         rt_free(file_path);
         return 0;
     }
@@ -233,7 +212,7 @@ static int dfs_win32_open(struct dfs_fd *file)
     /* Creates a new file. The function fails if the file is already existing. */
     if (oflag & O_EXCL) mode |= O_EXCL;
 
-    file_path = winpath_dirdup(WIN32_DIRDISK_ROOT, file->path);
+    file_path = winpath_dirdup(WIN32_DIRDISK_ROOT, file->vnode->path);
     fd = _open(file_path, mode, 0x0100 | 0x0080); /* _S_IREAD | _S_IWRITE */
     rt_free(file_path);
 
@@ -244,11 +223,11 @@ static int dfs_win32_open(struct dfs_fd *file)
      * flush(), seek(), and will be free when calling close()*/
     file->data = (void *)fd;
     file->pos  = 0;
-    file->size = _lseek(fd, 0, SEEK_END);
+    file->vnode->size = _lseek(fd, 0, SEEK_END);
 
     if (oflag & O_APPEND)
     {
-        file->pos = file->size;
+        file->pos = file->vnode->size;
     }
     else
         _lseek(fd, 0, SEEK_SET);
@@ -260,14 +239,14 @@ __err:
     return win32_result_to_dfs(res);
 }
 
-static int dfs_win32_close(struct dfs_fd *file)
+static int dfs_win32_close(struct dfs_file *file)
 {
     if (file->flags & O_DIRECTORY)
     {
-        WINDIR *wdirp = (WINDIR*)(file->data);
+        WINDIR *wdirp = (WINDIR*)(file->vnode->data);
         RT_ASSERT(wdirp != RT_NULL);
         if (_findclose((intptr_t)wdirp->handle) == 0) {
-            free(wdirp->start); //NOTE: here we don't use rt_free!
+            free(wdirp->start); /* NOTE: here we don't use rt_free! */
             rt_free(wdirp);
             return 0;
         }
@@ -281,12 +260,12 @@ static int dfs_win32_close(struct dfs_fd *file)
     return win32_result_to_dfs(GetLastError());
 }
 
-static int dfs_win32_ioctl(struct dfs_fd *file, int cmd, void *args)
+static int dfs_win32_ioctl(struct dfs_file *file, int cmd, void *args)
 {
     return -ENOSYS;
 }
 
-static int dfs_win32_read(struct dfs_fd *file, void *buf, size_t len)
+static int dfs_win32_read(struct dfs_file *file, void *buf, size_t len)
 {
     int fd;
     int char_read;
@@ -301,7 +280,7 @@ static int dfs_win32_read(struct dfs_fd *file, void *buf, size_t len)
     return char_read;
 }
 
-static int dfs_win32_write(struct dfs_fd *file, const void *buf, size_t len)
+static int dfs_win32_write(struct dfs_file *file, const void *buf, size_t len)
 {
     int fd;
     int char_write;
@@ -317,20 +296,20 @@ static int dfs_win32_write(struct dfs_fd *file, const void *buf, size_t len)
     return char_write;
 }
 
-static int dfs_win32_flush(struct dfs_fd *file)
+static int dfs_win32_flush(struct dfs_file *file)
 {
     return 0;
 }
 
-static int dfs_win32_seek(struct dfs_fd *file,
+static int dfs_win32_seek(struct dfs_file *file,
                           rt_off_t offset)
 {
     int result;
 
     /* set offset as current offset */
-    if (file->type == FT_DIRECTORY)
+    if (file->vnode->type == FT_DIRECTORY)
     {
-        WINDIR* wdirp = (WINDIR*)(file->data);
+        WINDIR* wdirp = (WINDIR*)(file->vnode->data);
         RT_ASSERT(wdirp != RT_NULL);
         wdirp->curr = wdirp->start + offset;
         return offset;
@@ -346,7 +325,7 @@ static int dfs_win32_seek(struct dfs_fd *file,
 }
 
 /* return the size of struct dirent*/
-static int dfs_win32_getdents(struct dfs_fd *file, struct dirent *dirp, rt_uint32_t count)
+static int dfs_win32_getdents(struct dfs_file *file, struct dirent *dirp, rt_uint32_t count)
 {
     WINDIR *wdirp;
     struct dirent *d = dirp;
@@ -356,7 +335,7 @@ static int dfs_win32_getdents(struct dfs_fd *file, struct dirent *dirp, rt_uint3
     if (count / sizeof(struct dirent) != 1)
         return -EINVAL;
 
-    wdirp = (WINDIR*)(file->data);
+    wdirp = (WINDIR*)(file->vnode->data);
     RT_ASSERT(wdirp != RT_NULL);
     if (wdirp->curr == NULL) //no more entries in this directory
         return 0;
@@ -366,8 +345,8 @@ static int dfs_win32_getdents(struct dfs_fd *file, struct dirent *dirp, rt_uint3
         d->d_type = DT_DIR;
     else
         d->d_type = DT_REG;
-    d->d_namlen = strlen(wdirp->curr);
-    strncpy(d->d_name, wdirp->curr, DFS_PATH_MAX);
+    d->d_namlen = (rt_uint8_t)strlen(wdirp->curr);
+    strncpy(d->d_name, wdirp->curr, DIRENT_NAME_MAX);
     d->d_reclen = (rt_uint16_t)sizeof(struct dirent);
     wdirp->curr += (strlen(wdirp->curr) + 1);
     file->pos = wdirp->curr - wdirp->start + sizeof(struct dirent);//NOTE!
@@ -382,7 +361,7 @@ static int dfs_win32_getdents(struct dfs_fd *file, struct dirent *dirp, rt_uint3
             wdirp->start = realloc(wdirp->start, wdirp->end - wdirp->start + name_len);
             wdirp->curr = wdirp->start + (wdirp->curr - old_start);
             wdirp->end = wdirp->curr + name_len;
-            strcpy(wdirp->curr, wdirp->finddata.name);
+            rt_strcpy(wdirp->curr, wdirp->finddata.name);
         }
         else
         {
@@ -558,7 +537,7 @@ static rt_err_t nop_close(rt_device_t dev)
     return RT_EOK;
 }
 
-static rt_size_t nop_read(rt_device_t dev,
+static rt_ssize_t nop_read(rt_device_t dev,
                           rt_off_t    pos,
                           void       *buffer,
                           rt_size_t   size)
@@ -566,7 +545,7 @@ static rt_size_t nop_read(rt_device_t dev,
     return size;
 }
 
-static rt_size_t nop_write(rt_device_t dev,
+static rt_ssize_t nop_write(rt_device_t dev,
                            rt_off_t    pos,
                            const void *buffer,
                            rt_size_t   size)

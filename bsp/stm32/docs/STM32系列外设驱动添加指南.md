@@ -6,7 +6,7 @@
 
 ## 2. 前提要求
 
-- 熟练使用 ENV 工具，参考：[RT-Thread env 工具用户手册](https://www.rt-thread.org/document/site/rtthread-development-guide/rtthread-tool-manual/env/env-user-manual/)
+- 熟练使用 ENV 工具，参考：[RT-Thread env 工具用户手册](https://www.rt-thread.org/document/site/#/development-tools/env/env)
 - 熟悉 Kconfig 语法
 - 熟悉 STM32CubeMX 工具
 - 对 RT-Thread 设备驱动框架有一定了解
@@ -69,6 +69,9 @@
 - 部分驱动如果没有适配 BSP 所属的 STM32 系列，请等待 RT-Thread 团队更新。
   - 驱动文件对 STM32 系列的支持情况可以查看 [STM32系列驱动介绍文档](STM32系列驱动介绍文档.md)。
 - 对于驱动文件或文档说明，有任何建议或者意见，欢迎反馈到 [RT_Thread GitHub](https://github.com/RT-Thread/rt-thread) 网站或 [RT-Thread 官方论坛](https://www.rt-thread.org/qa/forum.php)。
+- 在生成代码时，不要勾选以下选项（即：不让其生成单独的 .c/.h 驱动文件，直接全部更新到 rt-thread 要使用的 stm32xxx_hal_msp.c 文件中）
+
+![generate-code](figures/generate-code.png)
 
 ## 5. 附录
 

@@ -1,12 +1,5 @@
 menu "Hardware Drivers Config"
 
-config SOC_STM32L496VG
-    bool
-    select SOC_SERIES_STM32L4
-    select RT_USING_COMPONENTS_INIT
-    select RT_USING_USER_MAIN
-    default y
-
 menu "Onboard Peripheral Drivers"
 
     config BSP_USING_STLINK_TO_USART
@@ -63,6 +56,14 @@ menu "On-chip Peripheral Drivers"
 
     config BSP_USING_ON_CHIP_FLASH
         bool "Enable on-chip FLASH"
+        select RT_USING_FAL
+        default n
+
+    config BSP_USING_ON_CHIP_FLASH_FATFS
+        bool "Enable onchip flash with FatFS"
+        depends on BSP_USING_ON_CHIP_FLASH
+        select RT_USING_DFS
+        select RT_USING_DFS_ELMFAT
         default n
 
     menuconfig BSP_USING_SPI
@@ -85,7 +86,7 @@ menu "On-chip Peripheral Drivers"
 
             config BSP_USING_SPI2
                 bool "Enable SPI2 BUS"
-                default n  
+                default n
             config BSP_SPI2_TX_USING_DMA
                 bool "Enable SPI2 TX DMA"
                 depends on BSP_USING_SPI2
@@ -171,18 +172,18 @@ menu "On-chip Peripheral Drivers"
         endif
 
     menuconfig BSP_USING_PWM
-        bool "Enable pwm"
+        bool "Enable PWM"
         default n
         select RT_USING_PWM
         if BSP_USING_PWM
         menuconfig BSP_USING_PWM3
-            bool "Enable timer3 output pwm"
+            bool "Enable timer3 output PWM"
             default n
             if BSP_USING_PWM3
                 config BSP_USING_PWM3_CH2
                     bool "Enable PWM3 channel2"
                     default n
-            
+
                 config BSP_USING_PWM3_CH3
                     bool "Enable PWM3 channel3"
                     default n
@@ -201,7 +202,6 @@ menu "On-chip Peripheral Drivers"
     menuconfig BSP_USING_ONCHIP_RTC
         bool "Enable RTC"
         select RT_USING_RTC
-        select RT_USING_LIBC
         default n
         if BSP_USING_ONCHIP_RTC
             choice
@@ -220,9 +220,9 @@ menu "On-chip Peripheral Drivers"
         bool "Enable Watchdog Timer"
         select RT_USING_WDT
         default n
-        
- source "../libraries/HAL_Drivers/Kconfig"
-    
+
+ source "$(BSP_DIR)/../libraries/HAL_Drivers/drivers/Kconfig"
+
 endmenu
 
 menu "Board extended module Drivers"

@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
- * 
+ *
  */
 
 #ifndef DRV_UART_H
@@ -17,7 +17,7 @@
 
 #include <MK64F12.h>
 
-#include <drivers/serial.h>
+#include <drivers/dev_serial.h>
 
 void rt_hw_uart_init(void);
 

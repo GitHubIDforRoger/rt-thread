@@ -1,12 +1,5 @@
 menu "Hardware Drivers Config"
 
-config SOC_STM32F411RC
-    bool
-    select SOC_SERIES_STM32F4
-    select RT_USING_COMPONENTS_INIT
-    select RT_USING_USER_MAIN
-    default y
-
 menu "Onboard Peripheral Drivers"
 
     config BSP_USING_USB_TO_USART
@@ -22,7 +15,7 @@ menu "Onboard Peripheral Drivers"
 
     config BSP_USING_SPI_FLASH
         bool "Enable SPI FLASH (W25Q16 spi2)"
-	select BSP_USING_SPI
+    select BSP_USING_SPI
         select BSP_USING_SPI2
         select RT_USING_SFUD
         select RT_SFUD_USING_SFDP
@@ -32,7 +25,7 @@ menu "Onboard Peripheral Drivers"
         bool "Enable potentiometer"
         select BSP_USING_ADC
         select BSP_USING_ADC1
-        default n 
+        default n
 
 endmenu
 
@@ -65,7 +58,7 @@ menu "On-chip Peripheral Drivers"
                 bool "Enable UART2 RX DMA"
                 depends on BSP_USING_UART2 && RT_SERIAL_USING_DMA
                 default n
-		endif    
+        endif
 
     menuconfig BSP_USING_TIM
         bool "Enable timer"
@@ -84,7 +77,7 @@ menu "On-chip Peripheral Drivers"
                 bool "Enable TIM4"
                 default n
         endif
-	
+
     menuconfig BSP_USING_SPI
         bool "Enable SPI BUS"
         default n
@@ -92,13 +85,13 @@ menu "On-chip Peripheral Drivers"
         if BSP_USING_SPI
             config BSP_USING_SPI2
                 bool "Enable SPI2 BUS"
-                default n  
-                        
+                default n
+
             config BSP_SPI2_TX_USING_DMA
                 bool "Enable SPI2 TX DMA"
                 depends on BSP_USING_SPI2
                 default n
-                        
+
             config BSP_SPI2_RX_USING_DMA
                 bool "Enable SPI2 RX DMA"
                 depends on BSP_USING_SPI2
@@ -135,12 +128,11 @@ menu "On-chip Peripheral Drivers"
 
     config BSP_USING_ON_CHIP_FLASH
         bool "Enable on-chip FLASH"
-        default n 
+        default n
 
     menuconfig BSP_USING_ONCHIP_RTC
         bool "Enable RTC"
         select RT_USING_RTC
-        select RT_USING_LIBC
         default n
         if BSP_USING_ONCHIP_RTC
             choice
@@ -159,9 +151,9 @@ menu "On-chip Peripheral Drivers"
         bool "Enable Watchdog Timer"
         select RT_USING_WDT
         default n
-	
-    source "../libraries/HAL_Drivers/Kconfig"
-    
+
+    source "$(BSP_DIR)/../libraries/HAL_Drivers/drivers/Kconfig"
+
 endmenu
 
 menu "Board extended module Drivers"

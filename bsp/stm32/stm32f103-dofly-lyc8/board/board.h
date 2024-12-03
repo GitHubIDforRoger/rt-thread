@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -11,9 +11,7 @@
 #ifndef __BOARD_H__
 #define __BOARD_H__
 
-#include <rtthread.h>
 #include <stm32f1xx.h>
-#include "drv_common.h"
 
 #define STM32_FLASH_START_ADRESS     ((uint32_t)0x08000000)
 #define STM32_FLASH_SIZE             (64 * 1024)
@@ -23,7 +21,7 @@
 #define STM32_SRAM_SIZE      20
 #define STM32_SRAM_END       (0x20000000 + STM32_SRAM_SIZE * 1024)
 
-#if defined(__CC_ARM) || defined(__CLANG_ARM)
+#if defined(__ARMCC_VERSION)
 extern int Image$$RW_IRAM1$$ZI$$Limit;
 #define HEAP_BEGIN      ((void *)&Image$$RW_IRAM1$$ZI$$Limit)
 #elif __ICCARM__

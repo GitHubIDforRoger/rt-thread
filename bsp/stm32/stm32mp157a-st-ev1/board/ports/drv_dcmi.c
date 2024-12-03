@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2022, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -80,7 +80,7 @@ static rt_err_t rt_hw_dcmi_init(DCMI_HandleTypeDef *device)
     if (HAL_DCMI_Init(device) != HAL_OK)
     {
         LOG_E("dcmi init error!");
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     DCMI->IER = 0x0;
@@ -110,7 +110,7 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
     /* enter interrupt */
     rt_interrupt_enter();
 
-	jpeg_data_process();
+    jpeg_data_process();
     __HAL_DCMI_ENABLE_IT(&dcmi,DCMI_IT_FRAME);
     /* leave interrupt */
     rt_interrupt_leave();
@@ -127,7 +127,7 @@ void DMA1_Stream3_IRQHandler(void)
         __HAL_DMA_CLEAR_FLAG(&hdma_dcmi, DMA_FLAG_TCIF3_7);
         rt_hw_camera_rx_callback();
     }
-    
+
     /* leave interrupt */
     rt_interrupt_leave();
 }
@@ -167,14 +167,14 @@ static rt_err_t rt_dcmi_control(rt_device_t dev, int cmd, void *args)
     return RT_EOK;
 }
 
-static rt_size_t rt_dcmi_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
+static rt_ssize_t rt_dcmi_read(rt_device_t dev, rt_off_t pos, void *buffer, rt_size_t size)
 {
     RT_ASSERT(dev != RT_NULL);
 
     return RT_EOK;
 }
 
-static rt_size_t rt_dcmi_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
+static rt_ssize_t rt_dcmi_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
 {
     RT_ASSERT(dev != RT_NULL);
 

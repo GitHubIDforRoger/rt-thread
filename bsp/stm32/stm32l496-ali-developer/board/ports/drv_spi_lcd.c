@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -7,7 +7,7 @@
  * Date           Author       Notes
  * 2018-11-27     zylx         first version
  */
- 
+
 #include <board.h>
 #include <drv_spi.h>
 #include <rtdevice.h>
@@ -18,7 +18,7 @@
 
 static int rt_hw_spi_lcd_init(void)
 {
-    rt_hw_spi_device_attach("spi1", "spi10", GPIOA, GPIO_PIN_4);
+    rt_hw_spi_device_attach("spi1", "spi10", GET_PIN(A, 4));
 
     return RT_EOK;
 }

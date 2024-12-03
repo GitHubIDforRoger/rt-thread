@@ -1,29 +1,20 @@
-/***************************************************************************//**
- * @file    drv_iic.c
- * @brief   Serial API of RT-Thread RTOS for EFM32
- *  COPYRIGHT (C) 2012, RT-Thread Development Team
- * @author  onelife
- * @version 1.0
- *******************************************************************************
- * @section License
- * The license and distribution terms for this file may be found in the file
- * LICENSE in this distribution or at http://www.rt-thread.org/license/LICENSE
- *******************************************************************************
- * @section Change Logs
+/*
+ * Copyright (c) 2006-2022, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
  * Date         Author      Notes
  * 2011-01-06   onelife     Initial creation for EFM32
- * 2011-06-17   onelife     Modify init function for EFM32 library v2.0.0
- *  upgrading
- * 2011-07-11   onelife     Add lock (semaphore) to prevent simultaneously
- *  access
+ * 2011-06-17   onelife     Modify init function for EFM32 library v2.0.0 upgrading
+ * 2011-07-11   onelife     Add lock (semaphore) to prevent simultaneously access
  * 2011-08-04   onelife     Change the usage of the second parameter of Read
- *  and Write functions from (seldom used) "Offset" to "Slave address"
+ *                            and Write functions from (seldom used) "Offset" to "Slave address"
  * 2011-08-04   onelife     Add a timer to prevent from forever waiting
- * 2011-11-29   onelife     Modify init function for EFM32 library v2.2.2
- *  upgrading
+ * 2011-11-29   onelife     Modify init function for EFM32 library v2.2.2 upgrading
  * 2011-12-27   onelife     Utilize "I2C_PRESENT" and "I2C_COUNT"
  * 2011-12-27   onelife     Change IIC read format
- ******************************************************************************/
+ */
 
 /***************************************************************************//**
  * @addtogroup efm32
@@ -191,7 +182,7 @@ static rt_err_t rt_iic_close(rt_device_t dev)
  * @return
  *   Error code
  ******************************************************************************/
-static rt_size_t rt_iic_read (
+static rt_ssize_t rt_iic_read (
     rt_device_t     dev,
     rt_off_t        pos,
     void*           buffer,
@@ -352,7 +343,7 @@ static rt_size_t rt_iic_read (
  * @return
  *   Error code
  ******************************************************************************/
-static rt_size_t rt_iic_write (
+static rt_ssize_t rt_iic_write (
     rt_device_t     dev,
     rt_off_t        pos,
     const void*     buffer,

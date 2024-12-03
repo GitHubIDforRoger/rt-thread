@@ -1,21 +1,7 @@
 /*
- * File      : drv_gpio.h
- * This file is part of RT-Thread RTOS
- * COPYRIGHT (C) 2017, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
@@ -23,6 +9,8 @@
  */
 #ifndef __DRV_GPIO_H__
 #define __DRV_GPIO_H__
+
+#include <rtdef.h>
 
 /* IO default function */
 #define IO_INPUT         (0x00)
@@ -226,7 +214,7 @@ typedef struct tina_gpio *tina_gpio_t;
 
 #define GPIO ((tina_gpio_t)GPIO_BASE_ADDR)
 
-int gpio_set_func(enum gpio_port port, enum gpio_pin pin, rt_uint8_t func);
+rt_err_t gpio_set_func(enum gpio_port port, enum gpio_pin pin, rt_uint8_t func);
 int gpio_set_value(enum gpio_port port, enum gpio_pin pin, rt_uint8_t value);
 int gpio_get_value(enum gpio_port port, enum gpio_pin pin);
 int gpio_set_pull_mode(enum gpio_port port,  enum gpio_pin pin, enum gpio_pull pull);

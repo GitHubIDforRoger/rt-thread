@@ -45,20 +45,25 @@ enum
     SPI_CNT
 };
 
+struct nu_spi_cs
+{
+    rt_uint32_t pin;
+};
+
 /* Private typedef --------------------------------------------------------------*/
 
 /* Private functions ------------------------------------------------------------*/
 static void nu_spi_transmission_with_poll(struct nu_spi *spi_bus,
         uint8_t *send_addr, uint8_t *recv_addr, int length, uint8_t bytes_per_word);
 static int nu_spi_register_bus(struct nu_spi *spi_bus, const char *name);
-static rt_uint32_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_message *message);
+static rt_ssize_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_message *message);
 static rt_err_t nu_spi_bus_configure(struct rt_spi_device *device, struct rt_spi_configuration *configuration);
 
 #if defined(BSP_USING_SPI_PDMA)
     static void nu_pdma_spi_rx_cb_event(void *pvUserData, uint32_t u32EventFilter);
     static rt_err_t nu_pdma_spi_rx_config(struct nu_spi *spi_bus, uint8_t *pu8Buf, int32_t i32RcvLen, uint8_t bytes_per_word);
     static rt_err_t nu_pdma_spi_tx_config(struct nu_spi *spi_bus, const uint8_t *pu8Buf, int32_t i32SndLen, uint8_t bytes_per_word);
-    static rt_size_t nu_spi_pdma_transmit(struct nu_spi *spi_bus, const uint8_t *send_addr, uint8_t *recv_addr, int length, uint8_t bytes_per_word);
+    static rt_ssize_t nu_spi_pdma_transmit(struct nu_spi *spi_bus, const uint8_t *send_addr, uint8_t *recv_addr, int length, uint8_t bytes_per_word);
 #endif
 /* Public functions -------------------------------------------------------------*/
 void nu_spi_transfer(struct nu_spi *spi_bus, uint8_t *tx, uint8_t *rx, int length, uint8_t bytes_per_word);
@@ -116,11 +121,13 @@ static rt_err_t nu_spi_bus_configure(struct rt_spi_device *device,
     struct nu_spi *spi_bus;
     uint32_t u32SPIMode;
     rt_err_t ret = RT_EOK;
+    void *pvUserData;
 
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(configuration != RT_NULL);
 
     spi_bus = (struct nu_spi *) device->bus;
+    pvUserData = device->parent.user_data;
 
     /* Check mode */
     switch (configuration->mode & RT_SPI_MODE_3)
@@ -138,7 +145,7 @@ static rt_err_t nu_spi_bus_configure(struct rt_spi_device *device,
         u32SPIMode = SPI_MODE_3;
         break;
     default:
-        ret = RT_EIO;
+        ret = -RT_EIO;
         goto exit_nu_spi_bus_configure;
     }
 
@@ -148,7 +155,7 @@ static rt_err_t nu_spi_bus_configure(struct rt_spi_device *device,
             configuration->data_width == 24 ||
             configuration->data_width == 32))
     {
-        ret = RT_EINVAL;
+        ret = -RT_EINVAL;
         goto exit_nu_spi_bus_configure;
     }
 
@@ -162,12 +169,29 @@ static rt_err_t nu_spi_bus_configure(struct rt_spi_device *device,
         if (configuration->mode & RT_SPI_CS_HIGH)
         {
             /* Set CS pin to LOW */
-            SPI_SET_SS_LOW(spi_bus->spi_base);
+            if (pvUserData != RT_NULL)
+            {
+                // set to LOW */
+                rt_pin_write(*((rt_base_t *)pvUserData), PIN_LOW);
+            }
+            else
+            {
+                SPI_SET_SS_LOW(spi_bus->spi_base);
+            }
         }
         else
         {
             /* Set CS pin to HIGH */
-            SPI_SET_SS_HIGH(spi_bus->spi_base);
+            if (pvUserData != RT_NULL)
+            {
+                // set to HIGH */
+                rt_pin_write(*((rt_base_t *)pvUserData), PIN_HIGH);
+            }
+            else
+            {
+                /* Set CS pin to HIGH */
+                SPI_SET_SS_HIGH(spi_bus->spi_base);
+            }
         }
 
         if (configuration->mode & RT_SPI_MSB)
@@ -339,7 +363,7 @@ exit_nu_pdma_spi_tx_config:
 /**
  * SPI PDMA transfer
  */
-static rt_size_t nu_spi_pdma_transmit(struct nu_spi *spi_bus, const uint8_t *send_addr, uint8_t *recv_addr, int length, uint8_t bytes_per_word)
+static rt_ssize_t nu_spi_pdma_transmit(struct nu_spi *spi_bus, const uint8_t *send_addr, uint8_t *recv_addr, int length, uint8_t bytes_per_word)
 {
     rt_err_t result = RT_EOK;
 
@@ -371,6 +395,7 @@ rt_err_t nu_hw_spi_pdma_allocate(struct nu_spi *spi_bus)
     }
 
     spi_bus->m_psSemBus = rt_sem_create("spibus_sem", 0, RT_IPC_FLAG_FIFO);
+    RT_ASSERT(spi_bus->m_psSemBus != RT_NULL);
 
     return RT_EOK;
 
@@ -545,11 +570,12 @@ void nu_spi_transfer(struct nu_spi *spi_bus, uint8_t *tx, uint8_t *rx, int lengt
 #endif
 }
 
-static rt_uint32_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_message *message)
+static rt_ssize_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_message *message)
 {
     struct nu_spi *spi_bus;
     struct rt_spi_configuration *configuration;
     uint8_t bytes_per_word;
+    void *pvUserData;
 
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(device->bus != RT_NULL);
@@ -558,6 +584,7 @@ static rt_uint32_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_m
     spi_bus = (struct nu_spi *) device->bus;
     configuration = (struct rt_spi_configuration *)&spi_bus->configuration;
     bytes_per_word = configuration->data_width / 8;
+    pvUserData = device->parent.user_data;
 
     if ((message->length % bytes_per_word) != 0)
     {
@@ -570,13 +597,30 @@ static rt_uint32_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_m
     {
         if (message->cs_take && !(configuration->mode & RT_SPI_NO_CS))
         {
-            if (configuration->mode & RT_SPI_CS_HIGH)
+
+            if (pvUserData != RT_NULL)
             {
-                SPI_SET_SS_HIGH(spi_bus->spi_base);
+                if (configuration->mode & RT_SPI_CS_HIGH)
+                {
+                    // set to HIGH */
+                    rt_pin_write(*((rt_base_t *)pvUserData), PIN_HIGH);
+                }
+                else
+                {
+                    // set to LOW */
+                    rt_pin_write(*((rt_base_t *)pvUserData), PIN_LOW);
+                }
             }
             else
             {
-                SPI_SET_SS_LOW(spi_bus->spi_base);
+                if (configuration->mode & RT_SPI_CS_HIGH)
+                {
+                    SPI_SET_SS_HIGH(spi_bus->spi_base);
+                }
+                else
+                {
+                    SPI_SET_SS_LOW(spi_bus->spi_base);
+                }
             }
         }
 
@@ -584,13 +628,29 @@ static rt_uint32_t nu_spi_bus_xfer(struct rt_spi_device *device, struct rt_spi_m
 
         if (message->cs_release && !(configuration->mode & RT_SPI_NO_CS))
         {
-            if (configuration->mode & RT_SPI_CS_HIGH)
+            if (pvUserData != RT_NULL)
             {
-                SPI_SET_SS_LOW(spi_bus->spi_base);
+                if (configuration->mode & RT_SPI_CS_HIGH)
+                {
+                    // set to LOW */
+                    rt_pin_write(*((rt_base_t *)pvUserData), PIN_LOW);
+                }
+                else
+                {
+                    // set to HIGH */
+                    rt_pin_write(*((rt_base_t *)pvUserData), PIN_HIGH);
+                }
             }
             else
             {
-                SPI_SET_SS_HIGH(spi_bus->spi_base);
+                if (configuration->mode & RT_SPI_CS_HIGH)
+                {
+                    SPI_SET_SS_LOW(spi_bus->spi_base);
+                }
+                else
+                {
+                    SPI_SET_SS_HIGH(spi_bus->spi_base);
+                }
             }
         }
 
@@ -635,5 +695,37 @@ static int rt_hw_spi_init(void)
 }
 
 INIT_DEVICE_EXPORT(rt_hw_spi_init);
+
+/**
+  * Attach the spi device to SPI bus, this function must be used after initialization.
+  */
+rt_err_t rt_hw_spi_device_attach(const char *bus_name, const char *device_name, rt_base_t pin)
+{
+    RT_ASSERT(bus_name != RT_NULL);
+    RT_ASSERT(device_name != RT_NULL);
+
+    rt_err_t ret = RT_EOK;
+    struct rt_spi_device *spi_device = (struct rt_spi_device *)rt_malloc(sizeof(struct rt_spi_device));
+    RT_ASSERT(spi_device != RT_NULL);
+
+    struct nu_spi_cs *cs_pin = (struct nu_spi_cs *)rt_malloc(sizeof(struct nu_spi_cs));
+    RT_ASSERT(cs_pin != RT_NULL);
+
+    cs_pin->pin = pin;
+    rt_pin_mode(pin, PIN_MODE_OUTPUT);
+    rt_pin_write(pin, PIN_HIGH);
+
+    ret = rt_spi_bus_attach_device(spi_device, device_name, bus_name, (void *)cs_pin);
+    if (ret != RT_EOK)
+    {
+        LOG_E("%s attach to %s faild, %d\n", device_name, bus_name, ret);
+    }
+
+    RT_ASSERT(ret == RT_EOK);
+
+    LOG_D("%s attach to %s done", device_name, bus_name);
+
+    return ret;
+}
 
 #endif //#if defined(BSP_USING_SPI)

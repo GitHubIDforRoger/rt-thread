@@ -1,11 +1,7 @@
 /*
- * File      : device_test.c
- * This file is part of RT-Thread RTOS
- * COPYRIGHT (C) 2011, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
- * The license and distribution terms for this file may be
- * found in the file LICENSE in this distribution or at
- * http://openlab.rt-thread.com/license/LICENSE.
+ * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
@@ -469,7 +465,7 @@ __return:
         rt_free(write_buffer);
     }
     rt_device_close(device);
-    return RT_ERROR;
+    return -RT_ERROR;
 }
 
 int device_test(const char * device_name)
@@ -481,7 +477,7 @@ int device_test(const char * device_name)
     if( device == RT_NULL)
     {
         rt_kprintf("device %s: not found!\r\n", device_name);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 
     // step 2:init device
@@ -509,7 +505,7 @@ int device_test(const char * device_name)
         return _block_device_test(device);
     default:
         rt_kprintf("unkown device type : %02X",device->type);
-        return RT_ERROR;
+        return -RT_ERROR;
     }
 }
 

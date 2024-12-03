@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2020, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -9,7 +9,6 @@
  */
 #include <rtthread.h>
 #include <rtdevice.h>
-#include <touch.h>
 
 #include "mbox.h"
 #include "drv_dsi_touch.h"
@@ -58,7 +57,7 @@ static void dsi_touch_thread_entry(void *param)
         rt_kprintf("init dsi touch err!\n");
         return;
     }
-    
+
     while (1)
     {
         struct touch_regs *regs = (struct touch_regs *)touchbuf;
@@ -73,11 +72,11 @@ static void dsi_touch_thread_entry(void *param)
         {
             touch_state = 0;
         }
-        rt_thread_mdelay(50); 
+        rt_thread_mdelay(50);
     }
 }
 
-static rt_size_t dsi_read_point(struct rt_touch_device *touch, void *buf, rt_size_t read_num)
+static rt_ssize_t dsi_read_point(struct rt_touch_device *touch, void *buf, rt_size_t read_num)
 {
     rt_uint16_t* touchxy = (rt_uint16_t *)buf;
     if((read_num != 0) && (touch_state == 1))

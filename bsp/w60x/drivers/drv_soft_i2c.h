@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2019, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -26,7 +26,7 @@ struct w60x_soft_i2c_config
 struct w60x_i2c
 {
     struct rt_i2c_bit_ops ops;
-    struct rt_i2c_bus_device i2c2_bus;
+    struct rt_i2c_bus_device i2c_bus;
 };
 
 #ifdef BSP_USING_SOFT_I2C1

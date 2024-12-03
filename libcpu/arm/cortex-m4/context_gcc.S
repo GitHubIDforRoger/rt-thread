@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2022, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -10,6 +10,7 @@
  * 2013-06-18     aozima       add restore MSP feature.
  * 2013-06-23     aozima       support lazy stack optimized.
  * 2018-07-24     aozima       enhancement hard fault exception handler.
+ * 2024-08-13     Evlers       allows rewrite to interrupt enable/disable api to support independent interrupts management
  */
 
 /**
@@ -32,6 +33,7 @@
  * rt_base_t rt_hw_interrupt_disable();
  */
 .global rt_hw_interrupt_disable
+.weak rt_hw_interrupt_disable
 .type rt_hw_interrupt_disable, %function
 rt_hw_interrupt_disable:
     MRS     r0, PRIMASK
@@ -42,6 +44,7 @@ rt_hw_interrupt_disable:
  * void rt_hw_interrupt_enable(rt_base_t level);
  */
 .global rt_hw_interrupt_enable
+.weak rt_hw_interrupt_enable
 .type rt_hw_interrupt_enable, %function
 rt_hw_interrupt_enable:
     MSR     PRIMASK, r0
@@ -104,18 +107,20 @@ PendSV_Handler:
     CBZ r1, switch_to_thread    /* skip register save at the first time */
 
     MRS r1, psp                 /* get from thread stack pointer */
-    
+
 #if defined (__VFP_FP__) && !defined(__SOFTFP__)
     TST     lr, #0x10           /* if(!EXC_RETURN[4]) */
+    IT      EQ
     VSTMDBEQ r1!, {d8 - d15}    /* push FPU register s16~s31 */
 #endif
-    
+
     STMFD   r1!, {r4 - r11}     /* push r4 - r11 register */
 
 #if defined (__VFP_FP__) && !defined(__SOFTFP__)
     MOV     r4, #0x00           /* flag = 0 */
 
     TST     lr, #0x10           /* if(!EXC_RETURN[4]) */
+    IT      EQ
     MOVEQ   r4, #0x01           /* flag = 1 */
 
     STMFD   r1!, {r4}           /* push flag */
@@ -137,6 +142,7 @@ switch_to_thread:
 
 #if defined (__VFP_FP__) && !defined(__SOFTFP__)
     CMP     r3,  #0             /* if(flag_r3 != 0) */
+    IT      NE
     VLDMIANE  r1!, {d8 - d15}   /* pop FPU register s16~s31 */
 #endif
 
@@ -145,6 +151,7 @@ switch_to_thread:
 #if defined (__VFP_FP__) && !defined(__SOFTFP__)
     ORR     lr, lr, #0x10       /* lr |=  (1 << 4), clean FPCA. */
     CMP     r3,  #0             /* if(flag_r3 != 0) */
+    IT      NE
     BICNE   lr, lr, #0x10       /* lr &= ~(1 << 4), set FPCA. */
 #endif
 
@@ -203,6 +210,14 @@ rt_hw_context_switch_to:
     /* enable interrupts at processor level */
     CPSIE   F
     CPSIE   I
+
+    /* clear the BASEPRI register to disable masking priority */
+    MOV     r0, #0x00
+    MSR     BASEPRI, r0
+
+    /* ensure PendSV exception taken place before subsequent operation */
+    DSB
+    ISB
 
     /* never reach here! */
 
